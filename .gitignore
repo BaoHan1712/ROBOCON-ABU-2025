@@ -30,7 +30,7 @@ ENV/
 *.log
 
 # Model weights
-*.pt
+*.onnx
 
 
 # Media files
