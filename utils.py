@@ -1,86 +1,71 @@
 import cv2 
 import math
 
-def offset_backboard(frame_2,cx):
-# Tính toán trung tâm khung hình
-    frame_center_x = frame_2.shape[1] // 2
-    cv2.line(frame_2, (frame_center_x, 0), (frame_center_x, frame_2.shape[0]), (255, 0, 0), 1)
+def offset_backboard(frame, cx):
+    """
+    Tính toán độ lệch giữa tâm vật thể và tâm khung hình
+    offset: Độ lệch tính bằng pixel (âm là lệch trái, dương là lệch phải)
+    is_centered: True nếu vật nằm trong vùng trung tâm
+    """
+    # Lấy kích thước khung hình
+    frame_height, frame_width = frame.shape[:2]
+    
+    # Tính tọa độ tâm khung hình 
+    frame_center_x = frame_width // 2
+    
+    # Tính độ lệch
     offset = cx - frame_center_x
+    
+    # Xác định vùng trung tâm (độ rộng 20 pixel)
+    center_threshold = 20
+    is_centered = abs(offset) <= center_threshold
+    
+    # Vẽ vùng trung tâm
+    cv2.line(frame, (frame_center_x - center_threshold, 0), 
+             (frame_center_x - center_threshold, frame_height), (0, 255, 0), 1)
+    cv2.line(frame, (frame_center_x + center_threshold, 0),
+             (frame_center_x + center_threshold, frame_height), (0, 255, 0), 1)
+    
+    return offset, is_centered
+
+def calculator_offset(frame, cx, x1, y2):
+    offset, is_centered = offset_backboard(frame, cx)
+    if is_centered:
+        cv2.putText(frame, "Chuan", (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+    else:
+        direction = "trai" if offset < 0 else "phai"
+        cv2.putText(frame, f"Lech {direction}: {abs(offset)} px", (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
     return offset
 
-
-# Tính toán tiêu cự dựa trên khoảng cách và chiều cao thực tế
-def calculate_focal_length(known_distance, real_height, pixel_height):
-    return (pixel_height * known_distance) / real_height
-
-# Tính khoảng cách từ cam đến vật thể
-def calculate_distance(focal_length, real_height, pixel_height):
-    return (real_height * focal_length) / pixel_height
-
-FOCAL_LENGTH = None # Tiêu cự của camera
-# Tính khoảng cách thực từ camera đến rổ     
-def calculate_real_distance(distance, CAMERA_HEIGHT, KNOWN_HEIGHT_BASKET):
-    """
-    Tính khoảng cách thực từ camera đến rổ dựa trên độ cao
-    Args:
-        distance: Khoảng cách phát hiện được từ camera
-        camera_height: Độ cao của camera (m)
-        basket_height: Độ cao của rổ (m)
-    """
-    height_diff = KNOWN_HEIGHT_BASKET - CAMERA_HEIGHT  # Độ chênh lệch độ cao
-    real_distance = math.sqrt(distance**2 + height_diff**2)
-    return real_distance
-
-# Hàm tính khoảng cách 
-def process_distance(frame, x1, y1, y2, KNOWN_DISTANCE, CAMERA_HEIGHT, KNOWN_HEIGHT_BASKET):
-
-    global FOCAL_LENGTH
-
-    # Tính chiều cao pixel của đối tượng
-    pixel_height =  y2 - y1
-
-    if FOCAL_LENGTH is None:
-        FOCAL_LENGTH = calculate_focal_length(KNOWN_DISTANCE, KNOWN_HEIGHT_BASKET, pixel_height)
-
-    # Tính khoảng cách thẳng từ camera
-    straight_distance = calculate_distance(FOCAL_LENGTH, KNOWN_HEIGHT_BASKET, pixel_height)
-
-    real_distance = calculate_real_distance(straight_distance, CAMERA_HEIGHT, KNOWN_HEIGHT_BASKET)
-    distance_m = round(real_distance / 100, 1)
-
-    cv2.putText(frame, f'Kc:{distance_m}m', (x1, y2 + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+# Tính khoảng cách trung bình
+def get_average_distance(depth_frame, x, y, kernel_size=20):
+    try:
+        total_dist = 0
+        valid_points = 0
+        half_kernel = kernel_size // 2
+        
+        for i in range(-half_kernel, half_kernel + 1):
+            for j in range(-half_kernel, half_kernel + 1):
+                try:
+                    dist = depth_frame.get_distance(int(x + i), int(y + j))
+                    if dist > 0:  
+                        total_dist += dist
+                        valid_points += 1
+                except:
+                    continue
+                    
+        if valid_points > 0:
+            avg_dist = total_dist / valid_points
+            return round(avg_dist * 100, 2)  # Chuyển sang cm
+        return 0
+        
+    except Exception as e:
+        print(f"Lỗi khi tính khoảng cách trung bình: {str(e)}")
+        return 0
     
-    return real_distance
-
-# Tính toán góc bắn và lực bắn
-# def calculate_shooting_params(distance, HEIGHT_camera, HEIGHT_basket):
-#     if callable(distance):  # Kiểm tra xem distance có phải là hàm không
-#         raise TypeError("Distance must be a number, not a function")
-    
-#     g = 980  # Gia tốc trọng trường
-#     distance = (distance) / 100  
-    
-#     height_diff = float(HEIGHT_basket - HEIGHT_camera)
-#     height_diff = float(height_diff / 100)
-    
-#     # Tính góc bắn 
-#     angle = math.degrees(math.atan((4 * height_diff + math.sqrt(4 * height_diff**2 + distance**2)) / distance))
-    
-#     # Tính vận tốc ban đầu 
-
-#     v0 = math.sqrt((g * distance**2) / (2 * math.cos(math.radians(angle))**2 * (distance * math.tan(math.radians(angle)) - height_diff)))
-    
-#     # Chuyển đổi vận tốc thành % lực bắn (giả sử vận tốc tối đa là 10 m/s)
-#     max_velocity = 1000  # cm/s
-#     power = min((v0 * 100) / max_velocity * 100, 100)
-    
-#     return angle, power
-
-# # Vẽ thông số bắn lên frame
-# def draw_shooting_params(frame, x1, y2, distance, HEIGHT_camera, HEIGHT_basket):
-#     angle, power = calculate_shooting_params(distance, HEIGHT_camera, HEIGHT_basket)
-    
-#     cv2.putText(frame, f'Goc ban: {angle:.1f} do', (x1, y2 + 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-#     # cv2.putText(frame, f'Luc ban: {power:.1f}%', (x1, y2 + 80), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-    
-#     return angle, power
+def calculator_distance(frame,x1,y2,depth_frame,depth_x,depth_y):
+    # Trong vòng lặp chính
+    distance_cm = get_average_distance(depth_frame, depth_x, depth_y, kernel_size=20)
+    if distance_cm > 0:
+        cv2.putText(frame, f'Kc: {distance_cm} cm', (x1, y2 + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+        

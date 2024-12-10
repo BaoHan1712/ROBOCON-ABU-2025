@@ -1,6 +1,6 @@
 import cv2
 from ultralytics import YOLO
-from utils import calculator_offset, calculator_distance
+from utils import offset_backboard, calculator_distance
 import math
 # import serial
 import time
@@ -17,6 +17,7 @@ config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 30)
 
 # # Lấy thông tin về các chế độ được hỗ trợ
 pipeline_profile = pipeline.start(config)
+
 
 # Tạo align object để căn chỉnh depth với màu
 align_to = rs.stream.color
@@ -42,26 +43,31 @@ time_final = 1
 # Hàm truyền data độ lệch xuống STM32
 def calculator_offset_stm(frame, cx, x1, y2):
     global last_send_time
-    offset = calculator_offset(frame, cx, x1, y2)
-    
-    # Tính toán độ lệch và kiểm tra vị trí trung tâm
-    current_time = time.time()
-    
+
+    # Tính toán độ lệch của backboard
+    offset = offset_backboard(frame, cx)
+    current_time = time.time()  
+    if offset < 90:
+        cv2.putText(frame, f'lech trai: {abs(offset)} px', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (125, 55, 155), 2)
+    elif offset > 110:
+        cv2.putText(frame, f'lech phai: {abs(offset)} px', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (125, 55, 155), 2)
+    else :
+       cv2.putText(frame, f'chuan', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (125, 55, 155), 2) 
 
     if current_time - last_send_time >= SEND_DELAY:
-        # Giới hạn offset trong khoảng [0, 255]
-        offset_byte = max(1, min(255, abs(int(offset))))
-        
-        # Thêm bit dấu (0: lệch trái, 1: lệch phải)
-        offset_with_sign = offset_byte if offset >= 0 else offset_byte + 128
-        
-        # Chuyển thành bytes
-        # offset_bytes = offset_with_sign.to_bytes(1, byteorder='little', signed=False)
-        last_send_time = current_time
-        
-        # return offset_bytes
-    
-    return None
+         # Giới hạn cua 1 byte
+        if offset < 2:
+            offset = 0
+        elif offset > 254:
+            offset = 255
+
+        # Chuyển đổi offset thành 1 byte không dấu
+        # offset_bytes = offset.to_bytes(1, byteorder='little', signed=False)
+
+        # ser.write(offset_bytes)
+        # print(f"Đã gửi: {offset_bytes.hex()}")
+        last_send_time = current_time  
+
 
 try:
     while True:
