@@ -53,33 +53,34 @@ def process_distance(frame, x1, y1, y2, KNOWN_DISTANCE, CAMERA_HEIGHT, KNOWN_HEI
     return real_distance
 
 # Tính toán góc bắn và lực bắn
-def calculate_shooting_params(distance, HEIGHT_camera, HEIGHT_basket):
-    if callable(distance):  # Kiểm tra xem distance có phải là hàm không
-        raise TypeError("Distance must be a number, not a function")
+# def calculate_shooting_params(distance, HEIGHT_camera, HEIGHT_basket):
+#     if callable(distance):  # Kiểm tra xem distance có phải là hàm không
+#         raise TypeError("Distance must be a number, not a function")
     
-    g = 980  # Gia tốc trọng trường
-    distance = (distance) / 100  
+#     g = 980  # Gia tốc trọng trường
+#     distance = (distance) / 100  
     
-    height_diff = float(HEIGHT_basket - HEIGHT_camera)
-    height_diff = float(height_diff / 100)
+#     height_diff = float(HEIGHT_basket - HEIGHT_camera)
+#     height_diff = float(height_diff / 100)
     
-    # Tính góc bắn 
-    angle = math.degrees(math.atan((4 * height_diff + math.sqrt(4 * height_diff**2 + distance**2)) / distance))
+#     # Tính góc bắn 
+#     angle = math.degrees(math.atan((4 * height_diff + math.sqrt(4 * height_diff**2 + distance**2)) / distance))
     
-    # Tính vận tốc ban đầu 
-    v0 = math.sqrt((g * distance**2) / (2 * math.cos(math.radians(angle))**2 * (distance * math.tan(math.radians(angle)) - height_diff)))
-    
-    # Chuyển đổi vận tốc thành % lực bắn (giả sử vận tốc tối đa là 10 m/s)
-    max_velocity = 1000  # cm/s
-    power = min((v0 * 100) / max_velocity * 100, 100)
-    
-    return angle, power
+#     # Tính vận tốc ban đầu 
 
-# Vẽ thông số bắn lên frame
-def draw_shooting_params(frame, x1, y2, distance, HEIGHT_camera, HEIGHT_basket):
-    angle, power = calculate_shooting_params(distance, HEIGHT_camera, HEIGHT_basket)
+#     v0 = math.sqrt((g * distance**2) / (2 * math.cos(math.radians(angle))**2 * (distance * math.tan(math.radians(angle)) - height_diff)))
     
-    cv2.putText(frame, f'Goc ban: {angle:.1f} do', (x1, y2 + 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-    cv2.putText(frame, f'Luc ban: {power:.1f}%', (x1, y2 + 80), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+#     # Chuyển đổi vận tốc thành % lực bắn (giả sử vận tốc tối đa là 10 m/s)
+#     max_velocity = 1000  # cm/s
+#     power = min((v0 * 100) / max_velocity * 100, 100)
     
-    return angle, power
+#     return angle, power
+
+# # Vẽ thông số bắn lên frame
+# def draw_shooting_params(frame, x1, y2, distance, HEIGHT_camera, HEIGHT_basket):
+#     angle, power = calculate_shooting_params(distance, HEIGHT_camera, HEIGHT_basket)
+    
+#     cv2.putText(frame, f'Goc ban: {angle:.1f} do', (x1, y2 + 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+#     # cv2.putText(frame, f'Luc ban: {power:.1f}%', (x1, y2 + 80), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+    
+#     return angle, power

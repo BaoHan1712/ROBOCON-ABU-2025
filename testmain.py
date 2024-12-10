@@ -1,6 +1,6 @@
 import cv2
 from ultralytics import YOLO
-from utils import offset_backboard, process_distance, draw_shooting_params
+from utils import offset_backboard, process_distance
 import math
 # import serial
 import time
@@ -8,14 +8,14 @@ import numpy as np
 from cover.sort import Sort
 
 
-cap = cv2.VideoCapture('data\clip.mp4')
+cap = cv2.VideoCapture(1)
 
 # ser = serial.Serial('COM8', 115200, timeout=1)
 
 # Tên nhãn
 classnames = ['basketball']
 
-model = YOLO("model\cnn2.pt")
+model = YOLO("model\cnn2.engine")
 
 tracker = Sort(max_age=60)
 
@@ -29,9 +29,9 @@ last_positions = {}
 time_final = 1
 
 ############## Tham số tính khoảng cách ###############
-KNOWN_DISTANCE_BASKET = 320   # Khoảng cách từ camera tới rổ (cm)
-KNOWN_HEIGHT_BASKET = 250  # Chiều cao chuẩn của rổ (cm)    
-CAMERA_HEIGHT = 100   # Chiều cao chuẩn của camera (cm)
+KNOWN_DISTANCE_BASKET = 520   # Khoảng cách từ camera tới rổ (cm)
+KNOWN_HEIGHT_BASKET = 245  # Chiều cao chuẩn của rổ (cm)    
+CAMERA_HEIGHT = 142   # Chiều cao chuẩn của camera (cm)
 
 
 # Hàm truyền data độ lệch xuống STM32
@@ -41,9 +41,9 @@ def calculator_offset_stm(frame, cx, x1, y2):
     # Tính toán độ lệch của backboard
     offset = offset_backboard(frame, cx)
     current_time = time.time()  
-    if offset < 98:
+    if offset < 90:
         cv2.putText(frame, f'lech trai: {abs(offset)} px', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (125, 55, 155), 2)
-    elif offset > 102:
+    elif offset > 110:
         cv2.putText(frame, f'lech phai: {abs(offset)} px', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (125, 55, 155), 2)
     else :
        cv2.putText(frame, f'chuan', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (125, 55, 155), 2) 
@@ -72,7 +72,7 @@ while True:
     new_frame_time = cv2.getTickCount()
     frame = cv2.resize(frame, (1080, 720))
 
-    results = model.predict(source=frame, imgsz=640, conf = 0.7)
+    results = model.predict(source=frame, imgsz=640, conf = 0.55)
 
     for info in results:
         boxes = info.boxes
@@ -84,7 +84,7 @@ while True:
             classindex = int(classindex)
             objectdetect = classnames[classindex]
             
-            if conf > 70:
+            if conf > 55:
                 x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                 new_detections = np.array([x1, y1, x2, y2, conf])
                 detections = np.vstack((detections, new_detections))
@@ -114,7 +114,7 @@ while True:
             calculator_offset_stm(frame,cx,x1,y2)
             distance_to_basket = process_distance(frame, x1, y1, y2, KNOWN_DISTANCE_BASKET, KNOWN_HEIGHT_BASKET, CAMERA_HEIGHT)
 
-            draw_shooting_params(frame, x1, y2, distance_to_basket, CAMERA_HEIGHT, KNOWN_HEIGHT_BASKET)
+            # draw_shooting_params(frame, x1, y2, distance_to_basket, CAMERA_HEIGHT, KNOWN_HEIGHT_BASKET)
             last_positions[id][4] -= 1
         else:
             to_remove.append(id)
