@@ -10,13 +10,16 @@ import pyrealsense2 as rs
 
 
 # Khởi tạo pipeline
-pipeline = rs.pipeline()
 config = rs.config()
-config.enable_stream(rs.stream.color,1280, 720, rs.format.bgr8, 30)
-config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 30)
+config.enable_stream(rs.stream.color,640, 480, rs.format.bgr8, 30)
+config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+# config.enable_stream(rs.stream.color,1280   , 720, rs.format.bgr8, 30)
+# config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 30)
 
+pipeline = rs.pipeline()    
 # # Lấy thông tin về các chế độ được hỗ trợ
 pipeline_profile = pipeline.start(config)
+
 
 # Tạo align object để căn chỉnh depth với màu
 align_to = rs.stream.color
@@ -25,9 +28,9 @@ align = rs.align(align_to)
 # Tên nhãn
 classnames = ['basketball']
 
-model = YOLO("model\cnn2.engine")
+model = YOLO("model\cnn2.engine", task="detect")
 
-tracker = Sort(max_age=60)
+tracker = Sort(max_age=40)
 
 prev_frame_time = 0
 new_frame_time = 0
@@ -64,17 +67,23 @@ def calculator_offset_stm(frame, cx, x1, y2):
     return None
 
 try:
+    ctx = rs.context()
+    devices = ctx.query_devices()
+    for dev in devices:
+        print(f"Device found: ")
+        print(f"    Name: {dev.get_info(rs.camera_info.name)}")
+        print(f"    Serial number: {dev.get_info(rs.camera_info.serial_number)}")
+        print(f"    USB Type: {dev.get_info(rs.camera_info.usb_type_descriptor)}")
+        print(f"    Firmware version: {dev.get_info(rs.camera_info.firmware_version)}")
+except Exception as e:
+    print(f"Error checking USB connection: {e}")
+
     while True:
-        # Đợi frame mới
-        frames = pipeline.wait_for_frames()
-        
-        # Căn chỉnh frame
-        aligned_frames = align.process(frames)
-        
-        # Lấy frame màu và depth đã căn chỉnh
-        color_frame = aligned_frames.get_color_frame()
-        depth_frame = aligned_frames.get_depth_frame()
-        
+        frames = pipeline.wait_for_frames(timeout_ms=10000)
+            
+        color_frame = frames.get_color_frame()
+        depth_frame = frames.get_depth_frame()
+                
         if not color_frame or not depth_frame:
             continue
 
@@ -87,7 +96,7 @@ try:
         new_frame_time = cv2.getTickCount()
         frame = cv2.resize(frame, (1080, 720))
 
-        results = model.predict(source=frame, imgsz=640, conf = 0.55, verbose=False)
+        results = model.predict(source=frame, imgsz=640, conf = 0.5, verbose=False)
 
         for info in results:
             boxes = info.boxes
@@ -99,7 +108,7 @@ try:
                 classindex = int(classindex)
                 objectdetect = classnames[classindex]
                 
-                if conf > 35:
+                if conf > 50:
                     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                     new_detections = np.array([x1, y1, x2, y2, conf])
                     detections = np.vstack((detections, new_detections))
@@ -110,7 +119,6 @@ try:
             for results in track_result:
                 x1, y1, x2, y2, id = results
                 x1, y1, x2, y2, id = int(x1), int(y1), int(x2), int(y2), int(id)
-                new_id = 1
                 w, h = x2 - x1, y2 - y1
                 cx, cy = x1 + w // 2, y1 + h // 2
 
@@ -128,7 +136,7 @@ try:
             # Truyền tham số xuống stm32
                 calculator_offset_stm(frame,cx,x1,y2)
                
-                calculator_distance(frame,x1,y2,depth_frame,cx,cy)
+                calculator_distance(frame,x1,y2,depth_frame, cx, cy)
                
                 last_positions[id][4] -= 1
             else:

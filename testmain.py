@@ -10,15 +10,15 @@ import pyrealsense2 as rs
 
 
 # Khởi tạo pipeline
-pipeline = rs.pipeline()
+pipeline = rs.pipeline()    
 config = rs.config()
-config.enable_stream(rs.stream.color,1280, 720, rs.format.bgr8, 30)
+# config.enable_stream(rs.stream.color,640, 480, rs.format.bgr8, 30)
+# config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+config.enable_stream(rs.stream.color,1280   , 720, rs.format.bgr8, 30)
 config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 30)
 
 # # Lấy thông tin về các chế độ được hỗ trợ
 pipeline_profile = pipeline.start(config)
-
-
 
 # Tạo align object để căn chỉnh depth với màu
 align_to = rs.stream.color
@@ -27,9 +27,9 @@ align = rs.align(align_to)
 # Tên nhãn
 classnames = ['basketball']
 
-model = YOLO("model\cnn2.engine")
+model = YOLO("model\cnn2.engine", task="detect")
 
-tracker = Sort(max_age=60)
+tracker = Sort(max_age=40)
 
 prev_frame_time = 0
 new_frame_time = 0
@@ -89,7 +89,7 @@ try:
         new_frame_time = cv2.getTickCount()
         frame = cv2.resize(frame, (1080, 720))
 
-        results = model.predict(source=frame, imgsz=640, conf = 0.55, verbose=False)
+        results = model.predict(source=frame, imgsz=640, conf = 0.5, verbose=False)
 
         for info in results:
             boxes = info.boxes
@@ -101,7 +101,7 @@ try:
                 classindex = int(classindex)
                 objectdetect = classnames[classindex]
                 
-                if conf > 35:
+                if conf > 50:
                     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                     new_detections = np.array([x1, y1, x2, y2, conf])
                     detections = np.vstack((detections, new_detections))
@@ -130,7 +130,7 @@ try:
             # Truyền tham số xuống stm32
                 calculator_offset_stm(frame,cx,x1,y2)
                
-                calculator_distance(frame,x1,y2,depth_frame,cx,cy)
+                calculator_distance(frame,x1,y2,depth_frame, cx, cy)
                
                 last_positions[id][4] -= 1
             else:
