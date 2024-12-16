@@ -1,32 +1,15 @@
 import cv2
 from ultralytics import YOLO
-from utils import calculator_offset, calculator_distance
+from utils import calculator_offset
 import math
 # import serial
 import time
 import numpy as np
 from cover.sort import Sort
-import pyrealsense2 as rs
-
-
-# Khởi tạo pipeline
-config = rs.config()
-config.enable_stream(rs.stream.color,640, 480, rs.format.bgr8, 30)
-config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-# config.enable_stream(rs.stream.color,1280   , 720, rs.format.bgr8, 30)
-# config.enable_stream(rs.stream.depth, 1280, 720, rs.format.z16, 30)
-
-pipeline = rs.pipeline()    
-# # Lấy thông tin về các chế độ được hỗ trợ
-pipeline_profile = pipeline.start(config)
-
-
-# Tạo align object để căn chỉnh depth với màu
-align_to = rs.stream.color
-align = rs.align(align_to)
+from data_lidar import LidarThread,  connect_lidar
 
 # Tên nhãn
-classnames = ['basketball']
+classnames = ['basket']
 
 model = YOLO("model\cnn2.engine", task="detect")
 
@@ -40,6 +23,14 @@ SEND_DELAY =  0.5 # Thời gian gửi 1 lần xuống
 
 last_positions = {}
 time_final = 1
+
+
+cap = cv2.VideoCapture(1)
+# Sử dụng trong mã chính
+# Sử dụng trong mã chính
+s = connect_lidar()
+lidar_thread = LidarThread(s)
+lidar_thread.start()
 
 
 # Hàm truyền data độ lệch xuống STM32
@@ -66,95 +57,60 @@ def calculator_offset_stm(frame, cx, x1, y2):
     
     return None
 
-try:
-    ctx = rs.context()
-    devices = ctx.query_devices()
-    for dev in devices:
-        print(f"Device found: ")
-        print(f"    Name: {dev.get_info(rs.camera_info.name)}")
-        print(f"    Serial number: {dev.get_info(rs.camera_info.serial_number)}")
-        print(f"    USB Type: {dev.get_info(rs.camera_info.usb_type_descriptor)}")
-        print(f"    Firmware version: {dev.get_info(rs.camera_info.firmware_version)}")
-except Exception as e:
-    print(f"Error checking USB connection: {e}")
 
-    while True:
-        frames = pipeline.wait_for_frames(timeout_ms=10000)
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    detections = np.empty((0, 5))
+
+    new_frame_time = cv2.getTickCount()
+    frame = cv2.resize(frame, (1080, 720))
+
+    results = model.predict(source=frame, imgsz=640, conf = 0.5, verbose=False)
+
+    for info in results:
+        boxes = info.boxes
+        for box in boxes:
+            x1, y1, x2, y2 = box.xyxy[0]
+            conf = box.conf[0]
+            classindex = box.cls[0]
+            conf = math.ceil(conf * 100)
+            classindex = int(classindex)
+            objectdetect = classnames[classindex]
             
-        color_frame = frames.get_color_frame()
-        depth_frame = frames.get_depth_frame()
-                
-        if not color_frame or not depth_frame:
-            continue
+            if conf > 50:
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                new_detections = np.array([x1, y1, x2, y2, conf])
+                detections = np.vstack((detections, new_detections))
 
-        # Chuyển đổi frame thành numpy array
-        frame = np.asanyarray(color_frame.get_data())
-        depth_image = np.asanyarray(depth_frame.get_data())
+    # Chỉ giữ lại 1 vật thể 
+    if detections.shape[0] > 0:
+        track_result = tracker.update(detections[:1])
+        for results in track_result:
+            x1, y1, x2, y2, id = results
+            x1, y1, x2, y2, id = int(x1), int(y1), int(x2), int(y2), int(id)
+            w, h = x2 - x1, y2 - y1
+            cx, cy = x1 + w // 2, y1 + h // 2
 
-        detections = np.empty((0, 5))
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.circle(frame, (cx, cy), 6, (0, 0, 255), -1)
+            cv2.putText(frame, f'{objectdetect} {id} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+            
+        # Truyền tham số xuống stm32
+            calculator_offset_stm(frame,cx,x1,y2)
 
-        new_frame_time = cv2.getTickCount()
-        frame = cv2.resize(frame, (1080, 720))
 
-        results = model.predict(source=frame, imgsz=640, conf = 0.5, verbose=False)
+    fps = cv2.getTickFrequency() / (new_frame_time - prev_frame_time)
+    prev_frame_time = new_frame_time
+    fps_text = f'FPS: {int(fps)}'
+    cv2.putText(frame, fps_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
+    cv2.imshow('Object Detection', frame)
+    
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+    
+        break
 
-        for info in results:
-            boxes = info.boxes
-            for box in boxes:
-                x1, y1, x2, y2 = box.xyxy[0]
-                conf = box.conf[0]
-                classindex = box.cls[0]
-                conf = math.ceil(conf * 100)
-                classindex = int(classindex)
-                objectdetect = classnames[classindex]
-                
-                if conf > 50:
-                    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-                    new_detections = np.array([x1, y1, x2, y2, conf])
-                    detections = np.vstack((detections, new_detections))
-
-        # Chỉ giữ lại 1 vật thể 
-        if detections.shape[0] > 0:
-            track_result = tracker.update(detections[:1])
-            for results in track_result:
-                x1, y1, x2, y2, id = results
-                x1, y1, x2, y2, id = int(x1), int(y1), int(x2), int(y2), int(id)
-                w, h = x2 - x1, y2 - y1
-                cx, cy = x1 + w // 2, y1 + h // 2
-
-        # Cập nhật vị trí cuối cùng và khung hình còn lại
-                last_positions[id] = [x1, y1, x2, y2, time_final] 
-        
-        to_remove = []
-        for id, pos in last_positions.items():
-            x1, y1, x2, y2, frames_remaining = pos
-            if frames_remaining > 0:
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                cv2.circle(frame, (cx, cy), 6, (0, 0, 255), -1)
-                cv2.putText(frame, f'{objectdetect} {id} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                
-            # Truyền tham số xuống stm32
-                calculator_offset_stm(frame,cx,x1,y2)
-               
-                calculator_distance(frame,x1,y2,depth_frame, cx, cy)
-               
-                last_positions[id][4] -= 1
-            else:
-                to_remove.append(id)
-        
-        # Xóa các bbox đã hết thời gian
-        for id in to_remove:
-            del last_positions[id]
-        
-        fps = cv2.getTickFrequency() / (new_frame_time - prev_frame_time)
-        prev_frame_time = new_frame_time
-        fps_text = f'FPS: {int(fps)}'
-        cv2.putText(frame, fps_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
-        cv2.imshow('Object Detection', frame)
-        
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-finally:
-    pipeline.stop()
-    cv2.destroyAllWindows()
+cap.release()
+cv2.destroyAllWindows()

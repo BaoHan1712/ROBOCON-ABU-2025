@@ -2,6 +2,9 @@ import cv2
 import math
 import numpy as np
 
+
+
+
 def offset_backboard(frame, cx):
     """
     Tính toán độ lệch giữa tâm vật thể và tâm khung hình
@@ -17,11 +20,12 @@ def offset_backboard(frame, cx):
     # Tính độ lệch
     offset = cx - frame_center_x
     
-    # Xác định vùng trung tâm (độ rộng 20 pixel)
     center_threshold = 20
     is_centered = abs(offset) <= center_threshold
     
     # Vẽ vùng trung tâm
+
+
     cv2.line(frame, (frame_center_x - center_threshold, 0), 
              (frame_center_x - center_threshold, frame_height), (0, 255, 0), 1)
     cv2.line(frame, (frame_center_x + center_threshold, 0),
@@ -38,68 +42,77 @@ def calculator_offset(frame, cx, x1, y2):
         cv2.putText(frame, f"Lech {direction}: {abs(offset)} px", (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
     return offset
 
-# Tính khoảng cách trung bình
-def get_average_distance(depth_frame, x, y, kernel_size=40, calibration_factor=1.0):
-    try:
-        # Static variables
-        if not hasattr(get_average_distance, "prev_distance"):
-            get_average_distance.prev_distance = 0
-            get_average_distance.kalman_estimate = 0
-            get_average_distance.kalman_variance = 1  # Variance of the Kalman filter
 
-        distances = []
-        half_kernel = kernel_size // 2
+from collections import deque
 
-        # Lấy các điểm trong vùng lân cận
-        for i in range(-half_kernel, half_kernel + 1):
-            for j in range(-half_kernel, half_kernel + 1):
-                try:
-                    dist = depth_frame.get_distance(int(x + i), int(y + j))
-                    if 0 < dist < 10:  # Giới hạn khoảng cách hợp lệ
-                        distances.append(dist)
-                except:
-                    continue
-
-        if len(distances) > 0:
-            distances = np.array(distances)
-            
-            # Loại bỏ nhiễu bằng khoảng tứ phân vị (IQR)
-            q1, q3 = np.percentile(distances, [25, 75])
-            iqr = q3 - q1
-            lower_bound = q1 - 1 * iqr
-            upper_bound = q3 + 1 * iqr
-            filtered_distances = distances[(distances >= lower_bound) & (distances <= upper_bound)]
-
-            if len(filtered_distances) > 0:
-                # Tính giá trị trung bình từ các điểm đã lọc
-                current_dist = np.mean(filtered_distances) * calibration_factor
-
-                # Áp dụng bộ lọc Kalman
-                kalman_gain = get_average_distance.kalman_variance / (get_average_distance.kalman_variance + 1)
-                kalman_estimate = get_average_distance.kalman_estimate + kalman_gain * (current_dist - get_average_distance.kalman_estimate)
-                kalman_variance = (1 - kalman_gain) * get_average_distance.kalman_variance
-
-                get_average_distance.kalman_estimate = kalman_estimate
-                get_average_distance.kalman_variance = kalman_variance
-
-                # Kiểm tra sự ổn định
-                if get_average_distance.prev_distance != 0:
-                    diff = abs(kalman_estimate - get_average_distance.prev_distance)
-                    if diff < 0.05:  # Nếu thay đổi rất nhỏ
-                        kalman_estimate = get_average_distance.prev_distance
-                get_average_distance.prev_distance = kalman_estimate
-
-                return round(kalman_estimate * 100, 1)  # Trả về giá trị chính xác
-        return get_average_distance.prev_distance
-    except Exception as e:
-        print(f"Lỗi khi tính khoảng cách trung bình: {str(e)}")
-        return get_average_distance.prev_distance if hasattr(get_average_distance, "prev_distance") else 0
-
-    
+distance_buffer = deque(maxlen=5)  # Lưu tối đa 5 giá trị
 
 def calculator_distance(frame, x1, y2, depth_frame, depth_x, depth_y):
-    distance_cm = get_average_distance(depth_frame, depth_x, depth_y, kernel_size=40, calibration_factor=1.0)
+    """
+    Hàm tính khoảng cách và hiển thị trên khung hình.
+    """
+    distance_cm = get_average_distance(depth_frame, depth_x, depth_y, kernel_size=30)
+    
+    # Lọc giá trị qua buffer để làm mượt
     if distance_cm > 0:
-        cv2.putText(frame, f'Kc: {distance_cm} cm', (x1, y2 + 20), 
+        distance_buffer.append(distance_cm)
+    elif distance_buffer:  
+        distance_cm = np.mean(distance_buffer)
+    
+    if distance_cm > 0:
+        cv2.putText(frame, f'Kc: {distance_cm:.1f} cm', (x1, y2 + 20),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+    
+
+def get_average_distance(depth_frame, cx, cy, kernel_size=30):
+    
+    
+    """
+    Lấy khoảng cách trung bình trong vùng lân cận, có lọc nhiễu.
+    """
+    width = depth_frame.get_width()
+    height = depth_frame.get_height()
+    
+    if cx < 0 or cx >= width or cy < 0 or cy >= height:
+        return 0.0
+
+    # Tăng kích thước kernel cho khoảng cách xa
+    if kernel_size < 50:
+        kernel_size = 50  # Tăng kích thước vùng lấy mẫu
+
+    # Lấy vùng lân cận xung quanh điểm (cx, cy)
+    x_start = max(0, cx - kernel_size // 2)
+    x_end = min(width, cx + kernel_size // 2 + 1)
+    y_start = max(0, cy - kernel_size // 2)
+    y_end = min(height, cy + kernel_size // 2 + 1)
+
+    # Thu thập các giá trị độ sâu hợp lệ trong vùng
+    depth_values = []
+    for py in range(y_start, y_end):
+        for px in range(x_start, x_end):
+            depth = depth_frame.get_distance(px, py)
+            if 0 < depth < 15:  # Tăng giới hạn khoảng cách lên 15m
+                depth_values.append(depth)
+
+    if not depth_values:
+        return 0.0
+
+    # Lọc nhiễu bằng phương pháp trung vị
+    depth_values = np.array(depth_values)
+    median_depth = np.median(depth_values)
+    
+    # Chỉ lấy các giá trị trong khoảng ±15% của trung vị
+    valid_mask = np.abs(depth_values - median_depth) <= 0.15 * median_depth
+    filtered_values = depth_values[valid_mask]
+
+    if len(filtered_values) == 0:
+        return 0.0
+
+    # Tính trung bình sau khi đã lọc
+    filtered_depth = np.mean(filtered_values)
+    
+    # Làm tròn đến 1 chữ số thập phân
+    return round(filtered_depth * 100, 1)  # Chuyển đổi sang cm
+
+
         
