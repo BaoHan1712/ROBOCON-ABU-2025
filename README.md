@@ -1,6 +1,6 @@
 <div align="center">
   
-# 🤖 ROBOT BASKETBALL VISION SYSTEM
+# 🤖 ROBOCON ABU 2025
   
 <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=500&size=40&pause=1000&color=2ED573&center=true&vCenter=true&width=435&lines=Computer+Vision;Deep+Learning;Robotics" alt="Typing SVG" />
 
@@ -8,10 +8,6 @@
 [![OpenCV](https://img.shields.io/badge/OpenCV-27338e?style=for-the-badge&logo=OpenCV&logoColor=white)](https://opencv.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![TensorRT](https://img.shields.io/badge/TensorRT-76B900?style=for-the-badge&logo=nvidia&logoColor=white)](https://developer.nvidia.com/tensorrt)
-
-<p align="center">
-  <img src="demo.gif" alt="Demo" width="600"/>
-</p>
 
 </div>
 
@@ -40,36 +36,40 @@ Hệ thống thị giác máy tính cho robot bóng rổ, sử dụng deep learn
   <img src="system_overview.png" width="70%"/>
 </p>
 
+### Mục tiêu của dự án:
+- Tạo ra một hệ thống tự động giúp robot có thể nhận diện và điều chỉnh vị trí để ném bóng vào rổ một cách chính xác.
+- Tối ưu hóa quy trình xử lý hình ảnh và dữ liệu từ cảm biến để đảm bảo độ chính xác và tốc độ cao.
+
 </div>
 
 <div id="features">
 
 ## 🚀 CHỨC NĂNG
 
-1. Nhận diện đối tượng:
-- Sử dụng mô hình CNN để nhận diện bóng rổ, bảng rổ và vành rổ
-- Độ tin cậy (confidence) > 50% mới được xử lý
-- Xử lý được các trường hợp nhiễu như: che khuất một phần, nhiều đối tượng trong cùng frame
+1. **Nhận diện đối tượng:**
+   - Sử dụng mô hình CNN để nhận diện bóng rổ, bảng rổ và vành rổ.
+   - Độ tin cậy (confidence) > 50% mới được xử lý.
+   - Xử lý được các trường hợp nhiễu như: che khuất một phần, nhiều đối tượng trong cùng frame.
 
-2. Tracking đối tượng:
-- Sử dụng thuật toán SORT (Simple Online Realtime Tracking)
-- Duy trì ID cho đối tượng kể cả khi bị che khuất tạm thời
-- Chống nhiễu khi có nhiều đối tượng tương tự xuất hiện
+2. **Tracking đối tượng:**
+   - Sử dụng thuật toán SORT (Simple Online Realtime Tracking).
+   - Duy trì ID cho đối tượng kể cả khi bị che khuất tạm thời.
+   - Chống nhiễu khi có nhiều đối tượng tương tự xuất hiện.
 
-3. Tính toán độ lệch:
-- Tính độ lệch giữa tâm đối tượng và tâm khung hình
-- Map độ lệch sang thang đo phù hợp (1-99: lệch trái, 100: chuẩn, 101-254: lệch phải)
-- Hiển thị thông tin độ lệch trực quan trên frame
+3. **Tính toán độ lệch:**
+   - Tính độ lệch giữa tâm đối tượng và tâm khung hình.
+   - Map độ lệch sang thang đo phù hợp (1-99: lệch trái, 100: chuẩn, 101-254: lệch phải).
+   - Hiển thị thông tin độ lệch trực quan trên frame.
 
-4. Đo khoảng cách:
-- Sử dụng cảm biến Lidar để đo khoảng cách chính xác
-- Lọc nhiễu bằng buffer và ngưỡng chênh lệch
-- Độ chính xác đến mm
+4. **Đo khoảng cách:**
+   - Sử dụng cảm biến Lidar để đo khoảng cách chính xác.
+   - Lọc nhiễu bằng buffer và ngưỡng chênh lệch.
+   - Độ chính xác đến mm.
 
-5. Truyền dữ liệu:
-- Giao tiếp với STM32 qua UART
-- Gói tin có cấu trúc: Start byte (0x02) + Offset (1 byte) + Distance (2 bytes) + Checksum + End byte (0x03)
-- Tần suất gửi: 0.5s/lần
+5. **Truyền dữ liệu:**
+   - Giao tiếp với STM32 qua UART.
+   - Gói tin có cấu trúc: Start byte (0x02) + Offset (1 byte) + Distance (2 bytes) + Checksum + End byte (0x03).
+   - Tần suất gửi: 0.5s/lần.
 
 </div>
 
@@ -77,35 +77,12 @@ Hệ thống thị giác máy tính cho robot bóng rổ, sử dụng deep learn
 
 ## 📋 CHI TIẾT KỸ THUẬT
 
-<h3>1. Thuật toán tính tâm và độ lệch:</h3>
+### 1. Thuật toán tính tâm và độ lệch:
+- **Xác định tâm đối tượng:** Sử dụng bounding box (x1,y1,x2,y2) từ YOLO để tính tọa độ tâm.
+- **Tính độ lệch:** Độ lệch = cx - frame_center_x, với cx là tọa độ x của tâm đối tượng.
+- **Bộ lọc nhiễu Kalman:** Sử dụng trong SORT tracking để duy trì độ chính xác trong việc theo dõi đối tượng.
 
-a) Xác định tâm đối tượng:
-- Sử dụng bounding box (x1,y1,x2,y2) từ CNN
-- Tính tọa độ tâm:
-
-```python
-cx = (x1 + x2) // 2  # Tọa độ x của tâm
-cy = (y1 + y2) // 2  # Tọa độ y của tâm
-```
-
-b) Tính độ lệch so với tâm khung hình:
-- Lấy tâm khung hình làm gốc tọa độ
-- Độ lệch = cx - frame_center_x
-- Map độ lệch sang thang đo 0-255:
-  + Lệch trái (âm): [1-99]
-  + Chuẩn tâm: 100 
-  + Lệch phải (dương): [101-254]
-
-c) Bộ lọc nhiễu Kalman:
-- Sử dụng trong SORT tracking
-- Ma trận trạng thái: [x,y,s,r,ẋ,ẏ,ṡ]
-  + x,y: tọa độ tâm
-  + s: diện tích bbox
-  + r: tỷ lệ bbox
-  + ẋ,ẏ,ṡ: vận tốc
-- Cập nhật theo chu kỳ 30fps
-
-<h3>2. Cấu trúc gói tin truyền xuống STM32:</h3>
+### 2. Cấu trúc gói tin truyền xuống STM32:
 
 a) Header (1 byte):
 - Start byte: 0x02
@@ -135,7 +112,7 @@ Ví dụ gói tin:
 STX  | Offset Dist    | CSum | ETX
 ```
 
-<h3>3. Xử lý tín hiệu Lidar:</h3>
+### 3. Xử lý tín hiệu Lidar:
 
 a) Thu thập dữ liệu:
 - Tốc độ quét: 15Hz
@@ -217,28 +194,10 @@ b) Độ chính xác:
 
 <div id="demo">
 
-## 🎥 DEMO & VISUALIZATION
-
-<table>
-<tr>
-<td width="50%">
-<img src="demo_detection.gif"/>
-<p align="center">Object Detection & Tracking</p>
-</td>
-<td width="50%">
-<img src="demo_distance.gif"/>
-<p align="center">Distance & Offset Calculation</p>
-</td>
-</tr>
-</table>
-
-</div>
-
-<div id="contributors">
 
 ## 👥 CONTRIBUTORS
 
-<a href="https://github.com/username">
+<a href="https://github.com/BaoHan1712">
   <img src="https://github.com/username.png" width="50px" alt=""/>
 </a>
 
@@ -248,7 +207,30 @@ b) Độ chính xác:
 
 ## 📝 LICENSE
 
-MIT License - Copyright (c) 2024 [Your Name]
+MIT License - Copyright (c) 2024 [BaoHan1712]
+
+</div>
+
+<div id="flowchart">
+
+## 📊 FLOWCHART CỦA HỆ THỐNG
+
+"""mermaid
+flowchart TD
+A[Input Camera] --> B[Xử lý trước khung hình]
+B --> C[Nhận diện YOLO]
+C --> D[Lọc tin cậy]
+D --> E[Theo dõi SORT]
+F[Input Lidar] --> G[Đo khoảng cách]
+G --> H[Lọc nhiễu]
+E --> I[Tính toán độ lệch]
+H --> I
+I --> J[Gói dữ liệu]
+J --> K[Truyền UART]
+K --> L[Điều khiển STM32]
+M[Output hiển thị] --> N[Hiển thị khung hình]
+I --> M
+H --> M"""
 
 </div>
 
