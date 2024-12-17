@@ -1,47 +1,35 @@
 import cv2 
-import math
+import struct
 import numpy as np
 
 
-
-
-def offset_backboard(frame, cx):
-    """
-    Tính toán độ lệch giữa tâm vật thể và tâm khung hình
-    offset: Độ lệch tính bằng pixel (âm là lệch trái, dương là lệch phải)
-    is_centered: True nếu vật nằm trong vùng trung tâm
-    """
-    # Lấy kích thước khung hình
-    frame_height, frame_width = frame.shape[:2]
-    
-    # Tính tọa độ tâm khung hình 
-    frame_center_x = frame_width // 2
-    
-    # Tính độ lệch
+def offset_backboard(frame_2,cx):
+    """Tính toán trung tâm khung hình"""
+    frame_center_x = frame_2.shape[1] // 2
+    cv2.line(frame_2, (frame_center_x, 0), (frame_center_x, frame_2.shape[0]), (0, 255, 0), 1)
     offset = cx - frame_center_x
-    
-    center_threshold = 20
-    is_centered = abs(offset) <= center_threshold
-    
-    # Vẽ vùng trung tâm
-
-
-    cv2.line(frame, (frame_center_x - center_threshold, 0), 
-             (frame_center_x - center_threshold, frame_height), (0, 255, 0), 1)
-    cv2.line(frame, (frame_center_x + center_threshold, 0),
-             (frame_center_x + center_threshold, frame_height), (0, 255, 0), 1)
-    
-    return offset, is_centered
-
-def calculator_offset(frame, cx, x1, y2):
-    offset, is_centered = offset_backboard(frame, cx)
-    if is_centered:
-        cv2.putText(frame, "Chuan", (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-    else:
-        direction = "trai" if offset < 0 else "phai"
-        cv2.putText(frame, f"Lech {direction}: {abs(offset)} px", (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
     return offset
 
+def calculator_offset_stm32(frame, cx, x1, y2):
+    
+    offset = offset_backboard(frame, cx)
+    """  Map offset từ giá trị gốc sang khoảng 0-200
+        offset < 0 -> map sang 1
+        offset = 0 -> map thành 100  
+        offset > 0 -> map sang 101-254"""
+    
+    if offset < 0:
+        # Map giá trị âm sang 1
+        mapped_value =max(1, min(99, int(offset) + 100))
+        cv2.putText(frame, f'lech trai: {abs(offset)} px', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+    elif offset > 0:
+        # Map giá trị dương sang 101-254 
+        mapped_value = max(101, min(254, int(offset) + 100))
+        cv2.putText(frame, f'lech phai: {abs(offset)} px', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+    elif offset == 0:
+        mapped_value = 100
+        cv2.putText(frame, f'chuan', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+    return mapped_value
 
 from collections import deque
 
@@ -65,8 +53,6 @@ def calculator_distance(frame, x1, y2, depth_frame, depth_x, depth_y):
     
 
 def get_average_distance(depth_frame, cx, cy, kernel_size=30):
-    
-    
     """
     Lấy khoảng cách trung bình trong vùng lân cận, có lọc nhiễu.
     """
@@ -86,12 +72,12 @@ def get_average_distance(depth_frame, cx, cy, kernel_size=30):
     y_start = max(0, cy - kernel_size // 2)
     y_end = min(height, cy + kernel_size // 2 + 1)
 
-    # Thu thập các giá trị độ sâu hợp lệ trong vùng
+    # Thu thập các giá trị độ sâu hợp lệ trong vùng từ 10m trở xuống
     depth_values = []
     for py in range(y_start, y_end):
         for px in range(x_start, x_end):
             depth = depth_frame.get_distance(px, py)
-            if 0 < depth < 15:  # Tăng giới hạn khoảng cách lên 15m
+            if 0 < depth < 10: 
                 depth_values.append(depth)
 
     if not depth_values:
@@ -112,7 +98,35 @@ def get_average_distance(depth_frame, cx, cy, kernel_size=30):
     filtered_depth = np.mean(filtered_values)
     
     # Làm tròn đến 1 chữ số thập phân
-    return round(filtered_depth * 100, 1)  # Chuyển đổi sang cm
+    return int(filtered_depth*100)  # Chuyển đổi sang cm
+
+def create_stm32_message(offset, distance, ser):
+    """
+    Tạo gói tin với cấu trúc:
+    - Start Byte: 0x02
+    - Data1: Offset (1 byte)
+    - Data2: Distance (2 bytes)
+    - Checksum: Tổng modulo 256
+    - End Byte: 0x03
+    """
+    offset = max(1, min(200, int(offset)))
+    distance = max(0, min(9999, int(distance)))
+
+    start_byte = 0x02
+    end_byte = 0x03
+
+    # Sử dụng struct để đóng gói offset và distance
+    # ">B" là big-endian với 1 byte, ">H" là big-endian với 2 bytes
+    data = struct.pack(">BH", offset, distance)
+
+    # Tính checksum: tổng các byte trong data modulo 256
+    checksum = sum(data) % 256
+
+    # Đóng gói toàn bộ gói tin với struct
+    packet = struct.pack(">B", start_byte) + data + struct.pack(">B", checksum) + struct.pack(">B", end_byte)
+
+    ser.write(packet)
+
 
 
         

@@ -1,12 +1,12 @@
 import cv2
 from ultralytics import YOLO
-from utils import calculator_offset, calculator_distance
+from utils import calculator_offset, create_stm32_message
 import math
 # import serial
 import time
 import numpy as np
 from cover.sort import Sort
-from data_lidar import calculator_to_radar, connect_lidar
+from data_lidar import LidarThread,  connect_lidar
 
 # Tên nhãn
 classnames = ['basket']
@@ -18,7 +18,7 @@ tracker = Sort(max_age=40)
 prev_frame_time = 0
 new_frame_time = 0
 
-last_send_time = 0  # Thời gian bắt đầu
+last_send_time = 0 
 SEND_DELAY =  0.5 # Thời gian gửi 1 lần xuống
 
 last_positions = {}
@@ -26,29 +26,36 @@ time_final = 1
 
 
 cap = cv2.VideoCapture(1)
-s = connect_lidar()
+
+lidar_socket = connect_lidar()
+lidar_thread = LidarThread(lidar_socket)
+lidar_thread.start()
 
 # Hàm truyền data độ lệch xuống STM32
-def calculator_offset_stm(frame, cx, x1, y2):
+def calculator_offset_stm(frame, cx, x1, y2, lidar_thread):
     global last_send_time
     offset = calculator_offset(frame, cx, x1, y2)
-    
-    # Tính toán độ lệch và kiểm tra vị trí trung tâm
     current_time = time.time()
-    
 
     if current_time - last_send_time >= SEND_DELAY:
-        # Giới hạn offset trong khoảng [0, 255]
-        offset_byte = max(1, min(255, abs(int(offset))))
+        # Lấy khoảng cách từ lidar thread
+        if hasattr(lidar_thread, 'buffer') and lidar_thread.buffer:
+            distance = lidar_thread.buffer[-1]  # Lấy giá trị mới nhất từ buffer
+        else:
+            distance = 0
+
+        # Tạo tin nhắn gửi xuống STM32
+        message = create_stm32_message(offset, distance)
         
-        # Thêm bit dấu (0: lệch trái, 1: lệch phải)
-        offset_with_sign = offset_byte if offset >= 0 else offset_byte + 128
+        # Chuyển chuỗi thành bytes để gửi qua serial
+        message_bytes = message.encode('ascii')
         
-        # Chuyển thành bytes
-        # offset_bytes = offset_with_sign.to_bytes(1, byteorder='little', signed=False)
+        # Gửi xuống STM32 (bỏ comment nếu dùng)
+        # ser.write(message_bytes)
+        # print(f"Đã gửi: {message}")
+        
         last_send_time = current_time
-        
-        # return offset_bytes
+        return message_bytes
     
     return None
 
@@ -89,13 +96,12 @@ while True:
             w, h = x2 - x1, y2 - y1
             cx, cy = x1 + w // 2, y1 + h // 2
 
-            calculator_to_radar(s)
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.circle(frame, (cx, cy), 6, (0, 0, 255), -1)
             cv2.putText(frame, f'{objectdetect} {id} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             
         # Truyền tham số xuống stm32
-            calculator_offset_stm(frame,cx,x1,y2)
+            calculator_offset_stm(frame,cx,x1,y2,lidar_thread)
 
 
     fps = cv2.getTickFrequency() / (new_frame_time - prev_frame_time)
