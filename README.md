@@ -214,23 +214,22 @@ MIT License - Copyright (c) 2024 [BaoHan1712]
 <div id="flowchart">
 
 ## 📊 FLOWCHART CỦA HỆ THỐNG
-
-"""mermaid
+mermaid
 flowchart TD
 A[Input Camera] --> B[Xử lý trước khung hình]
 B --> C[Nhận diện YOLO]
 C --> D[Lọc tin cậy]
 D --> E[Theo dõi SORT]
+E --> I[Tính toán độ lệch]
 F[Input Lidar] --> G[Đo khoảng cách]
 G --> H[Lọc nhiễu]
-E --> I[Tính toán độ lệch]
 H --> I
 I --> J[Gói dữ liệu]
 J --> K[Truyền UART]
 K --> L[Điều khiển STM32]
 M[Output hiển thị] --> N[Hiển thị khung hình]
 I --> M
-H --> M"""
+H --> M
 
 </div>
 
