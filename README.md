@@ -239,7 +239,7 @@ flowchart TD
 ### Mô tả flowchart:
 1. **Camera Input:** Nhận dữ liệu từ camera.
 2. **Frame Preprocessing:** Tiền xử lý khung hình để chuẩn bị cho việc nhận diện.
-3. **YOLO Detection:** Sử dụng mô hình YOLO để phát hiện đối tượng trong khung hình.
+3. **YOLO Detection:** Sử dụng mô hình CNN để phát hiện đối tượng trong khung hình.
 4. **Confidence Filtering:** Lọc các đối tượng dựa trên độ tin cậy.
 5. **SORT Tracking:** Theo dõi các đối tượng đã phát hiện.
 6. **Lidar Input:** Nhận dữ liệu từ cảm biến Lidar.
