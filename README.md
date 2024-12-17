@@ -214,22 +214,42 @@ MIT License - Copyright (c) 2024 [BaoHan1712]
 <div id="flowchart">
 
 ## 📊 FLOWCHART CỦA HỆ THỐNG
-mermaid
+
+```mermaid
 flowchart TD
-A[Input Camera] --> B[Xử lý trước khung hình]
-B --> C[Nhận diện YOLO]
-C --> D[Lọc tin cậy]
-D --> E[Theo dõi SORT]
-E --> I[Tính toán độ lệch]
-F[Input Lidar] --> G[Đo khoảng cách]
-G --> H[Lọc nhiễu]
-H --> I
-I --> J[Gói dữ liệu]
-J --> K[Truyền UART]
-K --> L[Điều khiển STM32]
-M[Output hiển thị] --> N[Hiển thị khung hình]
-I --> M
-H --> M
+    A[Camera Input] --> B[Frame Preprocessing]
+    B --> C[YOLO Detection]
+    C --> D[Confidence Filtering]
+    D --> E[SORT Tracking]
+    
+    F[Lidar Input] --> G[Distance Measurement]
+    G --> H[Noise Filtering]
+    
+    E --> I[Offset Calculation]
+    H --> I
+    I --> J[Data Packaging]
+    J --> K[UART Transmission]
+    K --> L[STM32 Control]
+    
+    M[Display Output] --> N[Show Frame]
+    I --> M
+    H --> M
+```
+
+### Mô tả flowchart:
+1. **Camera Input:** Nhận dữ liệu từ camera.
+2. **Frame Preprocessing:** Tiền xử lý khung hình để chuẩn bị cho việc nhận diện.
+3. **YOLO Detection:** Sử dụng mô hình YOLO để phát hiện đối tượng trong khung hình.
+4. **Confidence Filtering:** Lọc các đối tượng dựa trên độ tin cậy.
+5. **SORT Tracking:** Theo dõi các đối tượng đã phát hiện.
+6. **Lidar Input:** Nhận dữ liệu từ cảm biến Lidar.
+7. **Distance Measurement:** Đo khoảng cách từ cảm biến.
+8. **Noise Filtering:** Lọc nhiễu từ dữ liệu đo.
+9. **Offset Calculation:** Tính toán độ lệch giữa tâm đối tượng và tâm khung hình.
+10. **Data Packaging:** Đóng gói dữ liệu để gửi xuống STM32.
+11. **UART Transmission:** Gửi dữ liệu qua giao tiếp UART.
+12. **STM32 Control:** Điều khiển robot dựa trên dữ liệu nhận được.
+13. **Display Output:** Hiển thị kết quả trên màn hình.
 
 </div>
 
