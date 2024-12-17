@@ -78,7 +78,7 @@ Hệ thống thị giác máy tính cho robot bóng rổ, sử dụng deep learn
 ## 📋 CHI TIẾT KỸ THUẬT
 
 ### 1. Thuật toán tính tâm và độ lệch:
-- **Xác định tâm đối tượng:** Sử dụng bounding box (x1,y1,x2,y2) từ YOLO để tính tọa độ tâm.
+- **Xác định tâm đối tượng:** Sử dụng bounding box (x1,y1,x2,y2) từ CNN để tính tọa độ tâm.
 - **Tính độ lệch:** Độ lệch = cx - frame_center_x, với cx là tọa độ x của tâm đối tượng.
 - **Bộ lọc nhiễu Kalman:** Sử dụng trong SORT tracking để duy trì độ chính xác trong việc theo dõi đối tượng.
 
@@ -131,7 +131,7 @@ c) Tính khoảng cách:
 
 <h3>4. Tối ưu hiệu năng:</h3>
 
-a) YOLO inference:
+a) CNN inference:
 - Batch size: 1
 - Input size: 640x640
 - TensorRT engine
@@ -143,7 +143,7 @@ b) Tracking:
 - IOU threshold: 0.3
 
 c) Xử lý song song:
-- Thread 1: Camera + YOLO
+- Thread 1: Camera + CNN
 - Thread 2: Lidar
 - Thread 3: UART transmission
 
@@ -218,7 +218,7 @@ MIT License - Copyright (c) 2024 [BaoHan1712]
 ```mermaid
 flowchart TD
     A[Camera Input] --> B[Frame Preprocessing]
-    B --> C[YOLO Detection]
+    B --> C[CNN Detection]
     C --> D[Confidence Filtering]
     D --> E[SORT Tracking]
     
@@ -239,7 +239,7 @@ flowchart TD
 ### Mô tả flowchart:
 1. **Camera Input:** Nhận dữ liệu từ camera.
 2. **Frame Preprocessing:** Tiền xử lý khung hình để chuẩn bị cho việc nhận diện.
-3. **YOLO Detection:** Sử dụng mô hình CNN để phát hiện đối tượng trong khung hình.
+3. **CNN Detection:** Sử dụng mô hình CNN để phát hiện đối tượng trong khung hình.
 4. **Confidence Filtering:** Lọc các đối tượng dựa trên độ tin cậy.
 5. **SORT Tracking:** Theo dõi các đối tượng đã phát hiện.
 6. **Lidar Input:** Nhận dữ liệu từ cảm biến Lidar.
