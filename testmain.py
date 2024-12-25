@@ -1,15 +1,15 @@
 import cv2
 from ultralytics import YOLO
-from utils import calculator_offset, create_stm32_message
+from utils import calculator_offset_stm32, create_stm32_message_1
 import math
-# import serial
-import time
+import serial
 import numpy as np
 from cover.sort import Sort
 from data_lidar import LidarThread,  connect_lidar
 
-# Tên nhãn
 classnames = ['basket']
+
+ser = serial.Serial('COM5', 115200 )
 
 model = YOLO("model\cnn2.engine", task="detect")
 
@@ -18,12 +18,8 @@ tracker = Sort(max_age=40)
 prev_frame_time = 0
 new_frame_time = 0
 
-last_send_time = 0 
-SEND_DELAY =  0.5 # Thời gian gửi 1 lần xuống
-
 last_positions = {}
 time_final = 1
-
 
 cap = cv2.VideoCapture(1)
 
@@ -31,34 +27,11 @@ lidar_socket = connect_lidar()
 lidar_thread = LidarThread(lidar_socket)
 lidar_thread.start()
 
-# Hàm truyền data độ lệch xuống STM32
-def calculator_offset_stm(frame, cx, x1, y2, lidar_thread):
-    global last_send_time
-    offset = calculator_offset(frame, cx, x1, y2)
-    current_time = time.time()
-
-    if current_time - last_send_time >= SEND_DELAY:
-        # Lấy khoảng cách từ lidar thread
-        if hasattr(lidar_thread, 'buffer') and lidar_thread.buffer:
-            distance = lidar_thread.buffer[-1]  # Lấy giá trị mới nhất từ buffer
-        else:
-            distance = 0
-
-        # Tạo tin nhắn gửi xuống STM32
-        message = create_stm32_message(offset, distance)
-        
-        # Chuyển chuỗi thành bytes để gửi qua serial
-        message_bytes = message.encode('ascii')
-        
-        # Gửi xuống STM32 (bỏ comment nếu dùng)
-        # ser.write(message_bytes)
-        # print(f"Đã gửi: {message}")
-        
-        last_send_time = current_time
-        return message_bytes
-    
-    return None
-
+def send_offset_stm(frame, cx, x1, y2, min_distance):
+    """Truyền dữ liệu khoảng cách và độ lệch xuống stm32"""
+    offset = calculator_offset_stm32(frame, cx, x1, y2)
+    distance = int(min_distance) if min_distance is not None else 0  
+    create_stm32_message_1(offset, distance, ser)
 
 while True:
     ret, frame = cap.read()
@@ -66,11 +39,11 @@ while True:
         break
 
     detections = np.empty((0, 5))
-
     new_frame_time = cv2.getTickCount()
-    frame = cv2.resize(frame, (1080, 720))
-
+    frame = cv2.resize(frame, (740, 640))
     results = model.predict(source=frame, imgsz=640, conf = 0.5, verbose=False)
+        
+    min_distance = lidar_thread.get_min_distance()
 
     for info in results:
         boxes = info.boxes
@@ -95,14 +68,11 @@ while True:
             x1, y1, x2, y2, id = int(x1), int(y1), int(x2), int(y2), int(id)
             w, h = x2 - x1, y2 - y1
             cx, cy = x1 + w // 2, y1 + h // 2
-
+            
+            send_offset_stm(frame, cx, x1, y2, min_distance)
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.circle(frame, (cx, cy), 6, (0, 0, 255), -1)
             cv2.putText(frame, f'{objectdetect} {id} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            
-        # Truyền tham số xuống stm32
-            calculator_offset_stm(frame,cx,x1,y2,lidar_thread)
-
 
     fps = cv2.getTickFrequency() / (new_frame_time - prev_frame_time)
     prev_frame_time = new_frame_time
@@ -111,7 +81,6 @@ while True:
     cv2.imshow('Object Detection', frame)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
-    
         break
 
 cap.release()

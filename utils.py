@@ -13,8 +13,8 @@ def offset_backboard(frame_2,cx):
 def calculator_offset_stm32(frame, cx, x1, y2):
     
     offset = offset_backboard(frame, cx)
-    """  Map offset từ giá trị gốc sang khoảng 0-200
-        offset < 0 -> map sang 1
+    """  Tình độ lệch của rổ
+        offset < 0 -> map sang 1-99
         offset = 0 -> map thành 100  
         offset > 0 -> map sang 101-254"""
     
@@ -100,7 +100,9 @@ def get_average_distance(depth_frame, cx, cy, kernel_size=30):
     # Làm tròn đến 1 chữ số thập phân
     return int(filtered_depth*100)  # Chuyển đổi sang cm
 
-def create_stm32_message(offset, distance, ser):
+import struct
+
+def create_stm32_message_1(offset, distance, ser):
     """
     Tạo gói tin với cấu trúc:
     - Start Byte: 0x02
@@ -110,23 +112,13 @@ def create_stm32_message(offset, distance, ser):
     - End Byte: 0x03
     """
     offset = max(1, min(200, int(offset)))
-    distance = max(0, min(9999, int(distance)))
+    distance = max(1, min(10000, int(distance)))
 
-    start_byte = 0x02
+    header = 0x02
     end_byte = 0x03
+    checksum = (header + offset + (distance >> 8) + (distance & 0xFF)) % 256
 
-    # Sử dụng struct để đóng gói offset và distance
-    # ">B" là big-endian với 1 byte, ">H" là big-endian với 2 bytes
-    data = struct.pack(">BH", offset, distance)
-
-    # Tính checksum: tổng các byte trong data modulo 256
-    checksum = sum(data) % 256
-
-    # Đóng gói toàn bộ gói tin với struct
-    packet = struct.pack(">B", start_byte) + data + struct.pack(">B", checksum) + struct.pack(">B", end_byte)
-
+    packet = struct.pack(">B", header) + struct.pack(">B", offset) + struct.pack(">H", distance) + struct.pack(">B", checksum) + struct.pack(">B", end_byte)
     ser.write(packet)
 
 
-
-        
