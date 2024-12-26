@@ -11,7 +11,7 @@ PORT = 2112  # Port SOPAS
 def hex_to_decimal(hex_value):
     return int(hex_value, 16)
 
-# Hàm tính khoảng cách (milimét) từ giá trị decimal
+# Hàm tính khoảng cách (milimét) 
 def convert_to_millimeters(value, scale_factor=1.0, offset=0.0):
     return (value * scale_factor) + offset
 
@@ -56,7 +56,7 @@ class LidarThread(threading.Thread):
                         distances = [convert_to_millimeters(hex_to_decimal(val)) for val in dist_values]
 
                         self.min_distance = min(distances) 
-                        print(f"😎😎Khoảng cách nhỏ nhất: {self.min_distance} mm")
+                        print(f"😎😎Khoảng cách: {self.min_distance} mm")
             except Exception as e:
                 print(f"Đã xảy ra lỗi: {e}")
                 break 

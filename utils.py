@@ -11,29 +11,30 @@ def offset_backboard(frame_2,cx):
     return offset
 
 def calculator_offset_stm32(frame, cx, x1, y2):
-    
+    number = 2
     offset = offset_backboard(frame, cx)
     """  Tình độ lệch của rổ
         offset < 0 -> map sang 1-99
         offset = 0 -> map thành 100  
         offset > 0 -> map sang 101-254"""
     
-    if offset < 0:
+    if offset < -number:
         # Map giá trị âm sang 1
         mapped_value =max(1, min(99, int(offset) + 100))
         cv2.putText(frame, f'lech trai: {abs(offset)} px', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-    elif offset > 0:
+    elif offset > number:
         # Map giá trị dương sang 101-254 
         mapped_value = max(101, min(254, int(offset) + 100))
+        
         cv2.putText(frame, f'lech phai: {abs(offset)} px', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-    elif offset == 0:
+    else:
         mapped_value = 100
         cv2.putText(frame, f'chuan', (x1, y2 + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
     return mapped_value
 
 from collections import deque
 
-distance_buffer = deque(maxlen=5)  # Lưu tối đa 5 giá trị
+distance_buffer = deque(maxlen=5)  
 
 def calculator_distance(frame, x1, y2, depth_frame, depth_x, depth_y):
     """

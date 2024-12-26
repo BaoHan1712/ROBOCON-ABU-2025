@@ -9,7 +9,7 @@ from data_lidar import LidarThread,  connect_lidar
 
 classnames = ['basket']
 
-ser = serial.Serial('COM5', 115200 )
+ser = serial.Serial('/dev/ttyUSB0', 115200 )
 
 model = YOLO("model\cnn2.engine", task="detect")
 

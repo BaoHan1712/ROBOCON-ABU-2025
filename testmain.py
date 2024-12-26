@@ -5,11 +5,11 @@ import math
 import serial
 import numpy as np
 from cover.sort import Sort
-from data_lidar import LidarThread,  connect_lidar
+# from data_lidar import LidarThread,  connect_lidar
 
 classnames = ['basket']
 
-ser = serial.Serial('COM5', 115200 )
+ser = serial.Serial('COM4', 115200 )
 
 model = YOLO("model\cnn2.engine", task="detect")
 
@@ -23,15 +23,16 @@ time_final = 1
 
 cap = cv2.VideoCapture(1)
 
-lidar_socket = connect_lidar()
-lidar_thread = LidarThread(lidar_socket)
-lidar_thread.start()
+# lidar_socket = connect_lidar()
+# lidar_thread = LidarThread(lidar_socket)
+# lidar_thread.start()
 
 def send_offset_stm(frame, cx, x1, y2, min_distance):
     """Truyền dữ liệu khoảng cách và độ lệch xuống stm32"""
     offset = calculator_offset_stm32(frame, cx, x1, y2)
     distance = int(min_distance) if min_distance is not None else 0  
     create_stm32_message_1(offset, distance, ser)
+    print("offset😊😊😊", offset)
 
 while True:
     ret, frame = cap.read()
@@ -43,7 +44,7 @@ while True:
     frame = cv2.resize(frame, (740, 640))
     results = model.predict(source=frame, imgsz=640, conf = 0.5, verbose=False)
         
-    min_distance = lidar_thread.get_min_distance()
+    # min_distance = lidar_thread.get_min_distance()
 
     for info in results:
         boxes = info.boxes
@@ -69,7 +70,7 @@ while True:
             w, h = x2 - x1, y2 - y1
             cx, cy = x1 + w // 2, y1 + h // 2
             
-            send_offset_stm(frame, cx, x1, y2, min_distance)
+            send_offset_stm(frame, cx, x1, y2, 400)
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.circle(frame, (cx, cy), 6, (0, 0, 255), -1)
             cv2.putText(frame, f'{objectdetect} {id} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
