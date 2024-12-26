@@ -11,7 +11,7 @@ def offset_backboard(frame_2,cx):
     return offset
 
 def calculator_offset_stm32(frame, cx, x1, y2):
-    number = 2
+    number = 7
     offset = offset_backboard(frame, cx)
     """  Tình độ lệch của rổ
         offset < 0 -> map sang 1-99

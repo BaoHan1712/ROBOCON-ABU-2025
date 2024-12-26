@@ -69,8 +69,10 @@ void robotGamePadControl(void)
 	//else
 //		tocdo = 20+GP_BTN[6]/1.5, tocdoXoay = 0.1 + GP_BTN[6]/500;
 
-		tocdo = 50, tocdoXoay = 0.1;
-		if(L1) tocdo = 200, tocdoXoay = 0.5;
+		tocdo = 50, tocdoXoay = 0.3;
+		if(L1) tocdo = 200, tocdoXoay = 0.6;
+
+
 
 	//--------- chay cac huong -----------
 
@@ -419,53 +421,55 @@ void calculate_force(int force) {
 	
 	
 	//chuan//chuan
-			if (force == 74) result = 14.35, hs_goc = degree_F;
-			else if (force == 75) result = 14.45, hs_goc = degree_F;
-			else if (force == 76) result = 14.55, hs_goc = degree_F;
-			else if (force == 77) result = 14.65, hs_goc = degree_F;
-			else if (force == 78) result = 14.75, hs_goc = degree_F;
-			else if (force == 79) result = 14.85, hs_goc = degree_F;
-			else if (force == 80) result = 14.95, hs_goc = degree_F;
-			else if (force == 81) result = 15.05, hs_goc = degree_F + 6;
-			else if (force == 82) result = 15.15, hs_goc = degree_F + 5;
-			else if (force == 83) result = 15.25, hs_goc = degree_F + 5;
-			else if (force == 84) result = 15.35, hs_goc = degree_F + 5;
-			else if (force == 85) result = 15.45, hs_goc = degree_F - 5;
-			else if (force == 86) result = 15.55, hs_goc = degree_F - 5;
-			else if (force == 87) result = 15.65, hs_goc = degree_F - 5;
-			else if (force == 88) result = 15.75, hs_goc = degree_F - 5;
-			else if (force == 89) result = 15.85, hs_goc = degree_F - 4;
-			else if (force == 90) result = 15.95, hs_goc = degree_F - 4;
-			else if (force == 91) result = 16.05, hs_goc = degree_F - 4;
-			else if (force == 92) result = 16.15, hs_goc = degree_F - 4;
-			else if (force == 93) result = 16.25, hs_goc = degree_F - 4;
-			else if (force == 94) result = 16.35, hs_goc = degree_F - 3;
-			else if (force == 95) result = 16.45, hs_goc = degree_F - 3;
-			else if (force == 96) result = 16.55, hs_goc = degree_F - 3;
-			else if (force == 97) result = 16.65, hs_goc = degree_F - 3;
-			else if (force == 98) result = 16.75, hs_goc = degree_F - 2;
-			else if (force == 99) result = 16.85, hs_goc = degree_F - 2;
-			else if (force == 100) result = 16.95, hs_goc = degree_F - 2;
-			else if (force == 101) result = 17.05, hs_goc = degree_F - 2;
-			else if (force == 102) result = 17.15, hs_goc = degree_F - 2;
-			else if (force == 103) result = 17.25, hs_goc = degree_F - 1;
-			else if (force == 104) result = 17.35, hs_goc = degree_F - 1;
-			else if (force == 105) result = 17.45, hs_goc = degree_F - 1;
-			else if (force == 106) result = 17.55, hs_goc = degree_F - 1;
-			else if (force == 107) result = 17.65, hs_goc = degree_F - 1;
-			else if (force == 108) result = 17.75, hs_goc = degree_F - 1;
-			else if (force == 109) result = 17.85, hs_goc = degree_F;
-			else if (force == 110) result = 17.95, hs_goc = degree_F;
-			else if (force == 111) result = 18.05, hs_goc = degree_F;
-			else if (force == 112) result = 18.15, hs_goc = degree_F;
-			else if (force == 113) result = 18.25, hs_goc = degree_F;
-			else if (force == 114) result = 18.35, hs_goc = degree_F;
-			else if (force == 115) result = 18.45, hs_goc = degree_F + 1;
-			else if (force == 116) result = 18.55, hs_goc = degree_F + 1;
-			else if (force == 117) result = 18.65, hs_goc = degree_F + 1;
-			else if (force == 118) result = 18.75, hs_goc = degree_F + 1;
-			else if (force == 119) result = 18.85, hs_goc = degree_F + 2;
-			else if (force == 120) result = 18.95, hs_goc = degree_F + 2;
+	if (force == 74) result = 13.95, hs_goc = degree_F;
+else if (force == 75) result = 14.05, hs_goc = degree_F;
+else if (force == 76) result = 14.15, hs_goc = degree_F;
+else if (force == 77) result = 14.25, hs_goc = degree_F;
+else if (force == 78) result = 14.35, hs_goc = degree_F;
+else if (force == 79) result = 14.45, hs_goc = degree_F;
+else if (force == 80) result = 14.55, hs_goc = degree_F;
+else if (force == 81) result = 14.65, hs_goc = degree_F + 6;
+else if (force == 82) result = 14.75, hs_goc = degree_F + 5;
+else if (force == 83) result = 14.85, hs_goc = degree_F + 5;
+else if (force == 84) result = 14.95, hs_goc = degree_F + 5;
+else if (force == 85) result = 15.05, hs_goc = degree_F - 5;
+else if (force == 86) result = 15.15, hs_goc = degree_F - 5;
+else if (force == 87) result = 15.25, hs_goc = degree_F - 5;
+else if (force == 88) result = 15.35, hs_goc = degree_F - 5;
+else if (force == 89) result = 15.45, hs_goc = degree_F - 4;
+else if (force == 90) result = 15.55, hs_goc = degree_F - 4;
+else if (force == 91) result = 15.65, hs_goc = degree_F - 4;
+else if (force == 92) result = 15.75, hs_goc = degree_F - 4;
+else if (force == 93) result = 15.85, hs_goc = degree_F - 4;
+else if (force == 94) result = 15.95, hs_goc = degree_F - 3;
+else if (force == 95) result = 16.05, hs_goc = degree_F - 3;
+else if (force == 96) result = 16.15, hs_goc = degree_F - 3;
+else if (force == 97) result = 16.25, hs_goc = degree_F - 3;
+else if (force == 98) result = 16.35, hs_goc = degree_F - 2;
+else if (force == 99) result = 16.45, hs_goc = degree_F - 2;
+else if (force == 100) result = 16.55, hs_goc = degree_F - 2;
+else if (force == 101) result = 16.65, hs_goc = degree_F - 2;
+else if (force == 102) result = 16.75, hs_goc = degree_F - 2;
+else if (force == 103) result = 16.85, hs_goc = degree_F - 1;
+else if (force == 104) result = 16.95, hs_goc = degree_F - 1;
+else if (force == 105) result = 17.05, hs_goc = degree_F - 1;
+else if (force == 106) result = 17.15, hs_goc = degree_F - 1;
+else if (force == 107) result = 17.25, hs_goc = degree_F - 1;
+else if (force == 108) result = 17.35, hs_goc = degree_F - 1;
+else if (force == 109) result = 17.45, hs_goc = degree_F;
+else if (force == 110) result = 17.55, hs_goc = degree_F;
+else if (force == 111) result = 17.65, hs_goc = degree_F;
+else if (force == 112) result = 17.75, hs_goc = degree_F;
+else if (force == 113) result = 17.85, hs_goc = degree_F;
+else if (force == 114) result = 17.95, hs_goc = degree_F;
+else if (force == 115) result = 18.05, hs_goc = degree_F + 1;
+else if (force == 116) result = 18.15, hs_goc = degree_F + 1;
+else if (force == 117) result = 18.25, hs_goc = degree_F + 1;
+else if (force == 118) result = 18.35, hs_goc = degree_F + 1;
+else if (force == 119) result = 18.45, hs_goc = degree_F + 2;
+else if (force == 120) result = 18.55, hs_goc = degree_F + 2;
+
+
 	
 	
 
@@ -506,41 +510,38 @@ if (L2 && CB_NHAN_BONG_BO_BAN == 0) {
 //***************************xoay mam bang tay**************
 #include <math.h> 
 #define CENTER 100
-#define MAX_SPEED 0.9
-#define MIN_SPEED_FROM_DISTANCE 0.05
-#define MIN_SPEED 0.2
+#define MAX_SPEED 1.2
+#define MIN_SPEED 0.7
 #define K 0.055
-#define CLOSE_TO_CENTER_THRESHOLD 35
+
 // Hàm chỉnh tốc độ xoay
+
 float calculateSpeed(int received_offset) {
     int distanceFromCenter = abs(received_offset - CENTER);
     
-    // Nếu gần tâm, sử dụng tốc độ nhỏ nhất
-    if (distanceFromCenter < CLOSE_TO_CENTER_THRESHOLD) {
-        return MIN_SPEED_FROM_DISTANCE;
-    }
     return MIN_SPEED + (MAX_SPEED - MIN_SPEED) * (1 - exp(-K * distanceFromCenter));
 }
 
-//////// Chinh thong so do lech /////////////
-#define OFFSET_TOLERANCE 2
-
+//////// Chỉnh thông số độ lệch /////////////
+#define OFFSET_TOLERANCE 6
 
 float check_spx; 
 
+#define TEST_SP 0.877 // Giá trị tham chiếu
+
 // Hàm kiểm tra tốc độ
 void check_speed(int received_offset) {
-    float speed = calculateSpeed(received_offset); 
-    check_spx = speed; // Lưu giá trị tốc độ vào biến toàn cục
-}
+    float speed_check = calculateSpeed(received_offset); 
+    check_spx = speed_check; }
+	
 void xoaytam(int received_offset) { 
-    float speed = calculateSpeed(received_offset); 
+    float received_speed = calculateSpeed(received_offset); 
 
     if (R2) { 
         if (received_offset < CENTER - OFFSET_TOLERANCE) {
-            robotRotateFree(-speed, 0); // Xoay phải
+            robotRotateFree(-received_speed, 0); // Xoay phải
         } else if (received_offset > CENTER + OFFSET_TOLERANCE) {
-            robotRotateFree(speed, 0); // Xoay trái
+            robotRotateFree(received_speed, 0); // Xoay trái
         } else {
             robotStop(0);
         }
@@ -548,51 +549,7 @@ void xoaytam(int received_offset) {
 }
 
 
-///#include <math.h> 
-//#define CENTER 100
-//#define MAX_SPEED 1
-//#define MIN_SPEED_FROM_DISTANCE 0.03
-//#define MIN_SPEED 0.2
-//#define SIGMOID_A 0.2  // càng cao càng giam nhanh, gan tâm là stop
-//#define CLOSE_TO_CENTER_THRESHOLD 45
-//#define OFFSET_TOLERANCE 4
 
-//// Hàm sigmoid để tính tốc độ
-//float sigmoid(float x, float a, float b) {
-//    return 1.0 / (1.0 + exp(-a * (x - b)));
-//}
-
-//// Hàm chỉnh tốc độ xoay
-//float calculateSpeed(int received_offset) {
-//    int distanceFromCenter = abs(received_offset - CENTER);
-//    
-//    // Nếu gần tâm, sử dụng tốc độ nhỏ nhất
-////    if (distanceFromCenter < CLOSE_TO_CENTER_THRESHOLD) {
-////        return MIN_SPEED_FROM_DISTANCE;
-//   
-
-//    // Tính tốc độ dựa trên hàm sigmoid
-//    float normalizedDistance = distanceFromCenter / 100.0; // Chuẩn hóa khoảng cách (giả sử max khoảng cách = 100)
-//    float sigmoidValue = sigmoid(normalizedDistance, SIGMOID_A, 0.5); // Tính giá trị sigmoid
-//    return MIN_SPEED + (MAX_SPEED - MIN_SPEED) * sigmoidValue;
-//}
-
-//// Hàm xoay theo offset
-//void xoaytam(int received_offset) { 
-//    float speed = calculateSpeed(received_offset); 
-
-//    if (R2) { 
-//        if (received_offset < CENTER - OFFSET_TOLERANCE) {
-//            robotRotateFree(-speed, 0); // Xoay phải
-//        } else if (received_offset > CENTER + OFFSET_TOLERANCE) {
-//            robotRotateFree(speed, 0); // Xoay trái
-//        } else {
-//            robotStop(0); 
-//        }
-//    }
-//}
-
- 
 void tim_ro(void)
 {
 	if(L1)

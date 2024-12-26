@@ -1,5 +1,3 @@
-
-
 #include <stdlib.h>
 #include <math.h>
 
@@ -294,19 +292,6 @@ void calculateMotor(float rotate)
 		else // khi robot vua chay vua quay
 	{
 		angle = (float)(_robotAngle - (_robotIMUAngle - _robotIMUInit) - _robotRotate * f10) / f10;
-
-//		_robotRun0h = -sin(radian * angle) * 2 - _robotCurve;
-//		_robotRun4h = sin(radian * (angle + f60)) * 2 - _robotCurve;
-//		
-//		_robotRun8h = -sin(radian * (angle + f120)) * 2;
-		
-//			_robotRun0h 	= 	sin(radian *  angle)*2;
-//			_robotRun2h 	= 	-sin(radian * (angle + f120))*2;
-//			_robotRun4h 	= 	sin(radian * (angle + f60))*2 ;
-//			
-//			_robotRun6h 	= 	sin(radian *  (angle + f180))*2;
-//			_robotRun8h 	= 	-sin(radian * (angle + f120))*2;
-//			_robotRun10h 	= 	sin(radian * (angle + f60))*2;
 		
 			_robotRun0h 	= -sin(radian * angle);
 			_robotRun2h 	= sin(radian * (angle + f120));
@@ -441,32 +426,32 @@ void robotCurve(int angle, int maxSpeed, float curve)
     }
 }
 //------------------------------------------------------------------------------
-void robotRotate(int rotateAngle, float rotate, int rotatePoint)
-{
-    if(_robotRotateAngle != rotateAngle || _robotRotate != rotate || _robotRotatePoint != rotatePoint)
-    {
-        if(_robotAngle == 30000)
-        {
-            _robotRunSpeed = 50; 
+ void robotRotate(int rotateAngle, float rotate, int rotatePoint)
+ {
+     if(_robotRotateAngle != rotateAngle || _robotRotate != rotate || _robotRotatePoint != rotatePoint)
+     {
+         if(_robotAngle == 30000)
+         {
+             _robotRunSpeed = 40;
+             _robotCurrentSpeed = 4;
 
-            _robotCurrentSpeed = 5;
+             if(rotateAngle < 30000)
+ 			{// Quay theo goc no do
+ 				_robotAngleCounterFix = 1;
+ 				if((rotate > 0 && _robotIMUAngle > rotateAngle) || (rotate < 0 && _robotIMUAngle < rotateAngle )) rotate = - rotate;        
+ 			}
+ 		}
 
-            if(rotateAngle < 30000)
-			{// Quay theo goc no do
-				_robotAngleCounterFix = 1;
-				if((rotate > 0 && _robotIMUAngle > rotateAngle) || (rotate < 0 && _robotIMUAngle < rotateAngle )) rotate = - rotate;        
-			}
-		}
-
-        _robotRotateAngle = rotateAngle;
-        _robotRotatePoint = rotatePoint;
-        _robotRotate = rotate;
-        _robotCounter = 0;
+         _robotRotateAngle = rotateAngle;
+         _robotRotatePoint = rotatePoint;
+         _robotRotate = rotate;
+         _robotCounter = 0;
         
 
-        calculateMotor(_robotRotate);
-    }
-}
+         calculateMotor(_robotRotate);
+     }
+ }
+
 //------------------------------------------------------------------------------
 void robotRotateFree(float rotate, int rotatePoint)
 {
@@ -488,7 +473,7 @@ void robotRunAngle(float angle, int maxSpeed, float robotAngle, float rotate)
 		}
 }
 //------------------------------------------------------------------------------
-void robotAngleAnalytics(void)
+void robotAngleAnalytics(void)   
 {
     if(_robotAngleCounterFix > 1)
     {

@@ -1398,13 +1398,13 @@ void ProcessReceivedData(void)
         // L?y d? li?u offset t? byte th? 2
         offset = RX_USART6[1];
         
-        // L?y d? li?u distance t? byte th? 3 và 4
-        distance = (RX_USART6[2] << 8) | RX_USART6[3]; // Ghép 2 byte thành 1 giá tr? 16 bit
+        // L?y d? li?u distance t? byte th? 3 vï¿½ 4
+        distance = (RX_USART6[2] << 8) | RX_USART6[3]; // Ghï¿½p 2 byte thï¿½nh 1 giï¿½ tr? 16 bit
         
-        // Tính checksum
+        // Tï¿½nh checksum
         calc_checksum = (RX_USART6[0] + RX_USART6[1] + RX_USART6[2] + RX_USART6[3]) % 256;
         
-        // Ki?m tra checksum và end byte
+        // Ki?m tra checksum vï¿½ end byte
         if(calc_checksum == RX_USART6[4] && RX_USART6[5] == 0x03)
         {
 				received_offset = offset;
@@ -1582,7 +1582,7 @@ void HMI_TRAN(vs32 _so_dong)
 										HMI_DMI("distance:",received_distance,14);  
 										break;		
 									case 15: 
-										HMI_DMI("track:",check_spx,15); 
+										HMI_DMI("check_speed:",check_spx,15); 
 										break;	
 								  case 16:
 									//	hien thi phan ngo vao

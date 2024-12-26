@@ -79,8 +79,8 @@ I (D:\keilc\keil_c\ARM\ARMCC\include\stdlib.h)(0x5EC7840C)
 I (D:\keilc\keil_c\ARM\ARMCC\include\math.h)(0x5EC78414)
 I (..\LID_HMI.h)(0x6731B090)
 I (..\doc_tay_game.h)(0x673C483C)
-I (..\config.h)(0x676CE1F0)
-I (..\4OmniControler.h)(0x676BCE92)
+I (..\config.h)(0x676D3AF5)
+I (..\4OmniControler.h)(0x676D2E19)
 I (..\FreeRTOSV7.3.0\FreeRTOS\Source\include\FreeRTOS.h)(0x6454D252)
 I (D:\keilc\keil_c\ARM\ARMCC\include\stddef.h)(0x5EC7840C)
 I (..\FreeRTOSV7.3.0\FreeRTOS\Source\include\projdefs.h)(0x6454D252)
@@ -90,12 +90,12 @@ I (..\FreeRTOSV7.3.0\FreeRTOS\Source\portable\RVDS\ARM_CM4F\portmacro.h)(0x6454D
 I (..\FreeRTOSV7.3.0\FreeRTOS\Source\include\mpu_wrappers.h)(0x6454D252)
 I (..\FreeRTOSV7.3.0\FreeRTOS\Source\include\task.h)(0x6454D252)
 I (..\FreeRTOSV7.3.0\FreeRTOS\Source\include\list.h)(0x6454D252)
-I (..\DieuKhienCoCau.h)(0x676CE06D)
+I (..\DieuKhienCoCau.h)(0x676D4412)
 I (..\stm32f4xx_it.h)(0x6454D24E)
 I (..\BasicFunction.h)(0x6711EB7E)
 I (..\San_Xanh.h)(0x6710CC66)
 I (..\San_Do.h)(0x6710CC66)
-F (..\config.h)(0x676CE1F0)()
+F (..\config.h)(0x676D3AF5)()
 F (..\doc_tay_game.h)(0x673C483C)()
 F (..\BasicFunction.h)(0x6711EB7E)()
 F (..\LID_HMI.h)(0x6731B090)()
@@ -103,8 +103,8 @@ F (..\FreeRTOSConfig.h)(0x6454D24E)()
 F (..\ROBOTRUN.h)(0x6610F8F2)()
 F (..\San_Xanh.h)(0x6710CC66)()
 F (..\San_Do.h)(0x6710CC66)()
-F (..\DieuKhienCoCau.h)(0x676CE06D)()
-F (..\4OmniControler.h)(0x676BCE92)()
+F (..\DieuKhienCoCau.h)(0x676D4412)()
+F (..\4OmniControler.h)(0x676D2E19)()
 F (..\system_stm32f4xx.c)(0x6454D24E)(-c --cpu Cortex-M4.fp.sp -D__MICROLIB -g -O0 --apcs=interwork -I ..\Libraries\STM32F4xx_StdPeriph_Driver\inc -I ..\Libraries\STM32F4xx_StdPeriph_Driver\src -I ..\Libraries\CMSIS\Include -I ..\Libraries\CMSIS\Device\ST\STM32F4xx\Include -I ..\FreeRTOSV7.3.0\FreeRTOS\Source\include -I ..\FreeRTOSV7.3.0\FreeRTOS\Source\portable\MemMang -I ..\FreeRTOSV7.3.0\FreeRTOS\Source\portable\RVDS\ARM_CM4F -I ..\..\ROBOT_MR1-I.\RTE\_Project-ID:\keilc\pack\ARM\CMSIS\5.7.0\CMSIS\Core\Include-ID:\keilc\pack\Keil\STM32F4xx_DFP\3.0.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="531" -D_RTE_ -DSTM32F407xx -D_RTE_ -DSTM32F4XX -DUSE_STDPERIPH_DRIVER-o .\project\system_stm32f4xx.o --omf_browse .\project\system_stm32f4xx.crf --depend .\project\system_stm32f4xx.d)
 I (..\Libraries\CMSIS\Device\ST\STM32F4xx\Include\stm32f4xx.h)(0x6454D252)
 I (..\Libraries\CMSIS\Include\core_cm4.h)(0x6454D250)
