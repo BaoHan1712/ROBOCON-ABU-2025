@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 
 # Load a pretrained YOLO11n model
-model = YOLO("model\yolo11n.pt")
+model = YOLO("best.pt")
 
 print(model.names) 
