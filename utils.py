@@ -1,6 +1,6 @@
 import cv2 
 import struct
-
+import numpy as np
 
 def offset_backboard(frame_2,cx):
     """Tính toán trung tâm khung hình"""
@@ -9,12 +9,43 @@ def offset_backboard(frame_2,cx):
     offset = cx - frame_center_x
     return offset
 
+def process_detections(detections, tracker):
+    """Xử lý detections và trả về thông tin đối tượng được phát hiện"""
+    basket_detected = False
+    backboard_detected = False
+    basket_info = None
+    backboard_info = None
+    conf = None
+
+    if detections.shape[0] > 0:
+        basket_detections = detections[detections[:, 5] == 1]  
+        backboard_detections = detections[detections[:, 5] == 0] 
+
+        # Xử lý basket nếu có
+        if basket_detections.shape[0] > 0:
+            track_result = tracker.update(basket_detections[:1].astype(np.float32))
+            if track_result.shape[0] > 0:
+                basket_detected = True
+                basket_info = track_result[0]
+                conf = int(basket_detections[0][4])
+
+        # Xử lý backboard nếu không có basket
+        elif backboard_detections.shape[0] > 0:
+            track_result = tracker.update(backboard_detections[:1].astype(np.float32))
+            if track_result.shape[0] > 0:
+                backboard_detected = True
+                backboard_info = track_result[0]
+                conf = int(backboard_detections[0][4])
+
+    return basket_detected, backboard_detected, basket_info, backboard_info, conf
+
+
 def calculator_offset_stm32(frame, cx, x1, y2):
-    number = 7
+    number = 2
     offset = offset_backboard(frame, cx)
     """  Tình độ lệch của rổ
         offset < 0 -> map sang 1-99
-        offset = 0 -> map thành 100  
+        offset = 0 -> map thành 100  -
         offset > 0 -> map sang 101-254"""
     
     if offset < -number:
@@ -43,13 +74,32 @@ def create_stm32_message_1(offset, distance, ser):
     - End Byte: 0x03
     """
     offset = max(1, min(200, int(offset)))
-    distance = max(1, min(10000, int(distance)))
+    distance = max(2, min(65510, int(distance)))
 
     header = 0x02
     end_byte = 0x03
     checksum = (header + offset + (distance >> 8) + (distance & 0xFF)) % 256
+    try:
+        packet = struct.pack(">B", header) + struct.pack(">B", offset) + struct.pack(">H", distance) + struct.pack(">B", checksum) + struct.pack(">B", end_byte)
+        ser.write(packet)
+    except struct.error as e:
+        print(f"Error creating STM32 message: {e}")
+        print(f"Offset: {offset}, Distance: {distance}")
 
-    packet = struct.pack(">B", header) + struct.pack(">B", offset) + struct.pack(">H", distance) + struct.pack(">B", checksum) + struct.pack(">B", end_byte)
-    ser.write(packet)
+def draw_plus_sign(image, center, size=10, color=(0, 0, 255), thickness=2):
+    """
+    Vẽ dấu cộng (+) trên hình ảnh.
 
+    Parameters:
+        image (numpy.ndarray): Ảnh cần vẽ dấu cộng.
+        center (tuple): Tọa độ trung tâm của dấu cộng (cx, cy).
+        size (int): Kích thước của dấu cộng (độ dài mỗi nhánh).
+        color (tuple): Màu sắc của dấu cộng (BGR).
+        thickness (int): Độ dày của đường vẽ.
+    """
+    cx, cy = center
+    # Vẽ đường ngang
+    cv2.line(image, (cx - size, cy), (cx + size, cy), color, thickness)
+    # Vẽ đường dọc
+    cv2.line(image, (cx, cy - size), (cx, cy + size), color, thickness)
 

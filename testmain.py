@@ -1,6 +1,6 @@
 import cv2
 from ultralytics import YOLO
-from utils import calculator_offset_stm32, create_stm32_message_1
+from utils import *
 import math
 import serial
 import numpy as np
@@ -11,14 +11,14 @@ from cover.sort import Sort
 
 classnames = ['backboard', 'basket']
 
-model = YOLO("model\cnn_2cls.pt", task="detect")
+model = YOLO("model\cnn_2cls_ver2.engine", task="detect")
 
 tracker = Sort(max_age=90)
 
 prev_frame_time = 0
 new_frame_time = 0
 
-cap = cv2.VideoCapture("data\chero.mp4")
+cap = cv2.VideoCapture("data\che.mp4")
 
 # lidar_socket = connect_lidar()
 # lidar_thread = LidarThread(lidar_socket)
@@ -31,35 +31,6 @@ cap = cv2.VideoCapture("data\chero.mp4")
 #     # create_stm32_message_1(offset, distance, ser)
 
 
-def process_detections(detections, tracker):
-    """Xử lý detections và trả về thông tin đối tượng được phát hiện"""
-    basket_detected = False
-    backboard_detected = False
-    basket_info = None
-    backboard_info = None
-    conf = None
-
-    if detections.shape[0] > 0:
-        basket_detections = detections[detections[:, 5] == 1]  
-        backboard_detections = detections[detections[:, 5] == 0] 
-
-        # Xử lý basket nếu có
-        if basket_detections.shape[0] > 0:
-            track_result = tracker.update(basket_detections[:1].astype(np.float32))
-            if track_result.shape[0] > 0:
-                basket_detected = True
-                basket_info = track_result[0]
-                conf = int(basket_detections[0][4])
-
-        # Xử lý backboard nếu không có basket
-        elif backboard_detections.shape[0] > 0:
-            track_result = tracker.update(backboard_detections[:1].astype(np.float32))
-            if track_result.shape[0] > 0:
-                backboard_detected = True
-                backboard_info = track_result[0]
-                conf = int(backboard_detections[0][4])
-
-    return basket_detected, backboard_detected, basket_info, backboard_info, conf
 
 def visualize_detections(frame, basket_detected, backboard_detected, basket_info, backboard_info, conf):
     """Hiển thị kết quả phát hiện lên frame"""
@@ -106,6 +77,7 @@ while True:
             classindex = box.cls[0]
             conf = math.ceil(conf * 100)
             classindex = int(classindex)
+            
             
             if conf > 50:
                 x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
