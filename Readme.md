@@ -35,7 +35,8 @@ Hệ thống bao gồm các thành phần chính:
 
 ### Luồng xử lý
 
-flowchart TD
+```mermaid
+graph TD
     subgraph Sensors ["Cảm biến"]
         A[Intel RealSense D435] --> |30-60 FPS| B[Frame ảnh]
         C[LIDAR] --> |5-15Hz| D[Khoảng cách]
@@ -66,6 +67,7 @@ flowchart TD
         Q --> S[2 Xi lanh khí nén]
         Q --> T[LED Status]
     end
+```
 
 ### Quy trình hoạt động
 
