@@ -1,4 +1,70 @@
-import cv2
+import logging
+
+# Create a logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create a file handler and a stream handler
+file_handler = logging.FileHandler('object_detection.log')
+stream_handler = logging.StreamHandler()
+
+# Create a formatter and set it for the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
+...
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        logger.error('Failed to read frame from camera')
+        break
+
+    detections = np.empty((0, 6))
+    new_frame_time = cv2.getTickCount()
+    frame = cv2.resize(frame, (740, 640))
+    results = model.predict(source=frame, imgsz=640, conf=0.5, verbose=False, max_det = 1)
+    
+    ## lấy khoảng cách từ lidar
+    min_distance = lidar_thread.get_min_distance()
+    
+    for info in results:
+        boxes = info.boxes
+        for box in boxes:
+            x1, y1, x2, y2 = box.xyxy[0]
+            conf = box.conf[0]
+            classindex = box.cls[0]
+            conf = math.ceil(conf * 100)
+            classindex = int(classindex)
+            
+            
+            if conf > 50:
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                new_detections = np.array([x1, y1, x2, y2, conf, classindex])
+                detections = np.vstack((detections, new_detections))
+
+    # Xử lý vật thể
+    basket_detected, backboard_detected, basket_info, backboard_info, conf = process_detections(detections, tracker)
+    offset_2 = visualize_detections(frame, basket_detected, backboard_detected, basket_info, backboard_info, conf, min_distance)
+    send_offset_stm(offset_2, min_distance)
+    fps = cv2.getTickFrequency() / (new_frame_time - prev_frame_time)
+    prev_frame_time = new_frame_time
+    fps_text = f'FPS: {int(fps)}'
+    cv2.putText(frame, fps_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
+    cv2.imshow('Object Detection', frame)                       
+    
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        logger.info('User stopped the program')
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+logger.info('Program ended')import cv2
 from ultralytics import YOLO
 from cover.utils import *
 import math
