@@ -37,53 +37,64 @@ Hệ thống bao gồm các thành phần chính:
 
 %%{init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '#32CD32', 'edgeLabelBackground':'#fff' } } }%%
 flowchart TD
-    subgraph Input ["Đầu vào"]
-        A[Camera] --> |30-60 FPS| B[Frame ảnh]
+    subgraph Sensors ["Cảm biến"]
+        A[Intel RealSense D435] --> |30-60 FPS| B[Frame ảnh]
+        C[LIDAR] --> |5-15Hz| D[Khoảng cách]
         style A fill:#90EE90
         style B fill:#98FB98
+        style C fill:#90EE90 
+        style D fill:#98FB98
     end
 
-    subgraph Detection ["Phát hiện & Tracking"]
-        B --> C[YOLOv11]
-        C --> D[Phát hiện vật thể]
-        D --> E[ByteTrack]
-        E --> F{Phân loại}
-        F --> |Class 1| G[Basket]
-        F --> |Class 2| H[Backboard] 
-        style C fill:#87CEEB
-        style D fill:#87CEEB
-        style E fill:#DDA0DD
-        style F fill:#FFB6C1
-        style G fill:#98FB98
-        style H fill:#98FB98
+    subgraph Processing ["Xử lý & Phân tích"]
+        B --> E[YOLOv11]
+        E --> F[Object Detection]
+        F --> G[ByteTrack]
+        G --> H{Phân loại}
+        H --> |Class 1| I[Basket]
+        H --> |Class 2| J[Backboard]
+        
+        style E fill:#87CEEB
+        style F fill:#87CEEB
+        style G fill:#DDA0DD
+        style H fill:#FFB6C1
+        style I fill:#98FB98
+        style J fill:#98FB98
     end
 
-    subgraph Processing ["Xử lý thông tin"]
-        G & H --> I[Bounding Box]
-        I --> J[Color Detection]
-        I --> K[Depth Camera]
-        J & K --> L[Thông tin vật thể]
-        style I fill:#FFE4B5
-        style J fill:#F0E68C
-        style K fill:#F0E68C
-        style L fill:#DEB887
+    subgraph Analysis ["Phân tích dữ liệu"]
+        I & J --> K[Bounding Box]
+        K --> L[Color Detection]
+        K --> M[Depth Analysis]
+        D --> M
+        L & M --> N[Object Info]
+        
+        style K fill:#FFE4B5
+        style L fill:#F0E68C
+        style M fill:#F0E68C
+        style N fill:#DEB887
     end
 
-    subgraph Control ["Điều khiển"]
-        L --> M[Tính độ lệch]
-        M --> N[Hướng di chuyển]
-        N --> O[STM32]
-        O --> P[Điều khiển động cơ]
-        style M fill:#FFA07A
-        style N fill:#FFA07A
-        style O fill:#CD853F
-        style P fill:#CD853F
+    subgraph Control ["Điều khiển Robot"]
+        N --> O[Tính độ lệch]
+        O --> P[PID Controller]
+        P --> Q[STM32F407]
+        Q --> R[4 DC Servo]
+        Q --> S[2 Xi lanh khí nén]
+        Q --> T[LED Status]
+        
+        style O fill:#FFA07A
+        style P fill:#FFA07A
+        style Q fill:#CD853F
+        style R fill:#CD853F
+        style S fill:#CD853F
+        style T fill:#CD853F
     end
 
     %% Kết nối giữa các subgraph
     classDef default fill:#fff,stroke:#333,stroke-width:2px;
     classDef subgraph fill:#fff,stroke:#333,stroke-width:2px;
-    class Input,Detection,Processing,Control subgraph;
+    class Sensors,Processing,Analysis,Control subgraph;
 
     %% Animation
     linkStyle default stroke-width:2px,fill:none,stroke-dasharray: 5 5;
