@@ -35,15 +35,10 @@ Hệ thống bao gồm các thành phần chính:
 
 ### Luồng xử lý
 
-%%{init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '#32CD32', 'edgeLabelBackground':'#fff' } } }%%
 flowchart TD
     subgraph Sensors ["Cảm biến"]
         A[Intel RealSense D435] --> |30-60 FPS| B[Frame ảnh]
         C[LIDAR] --> |5-15Hz| D[Khoảng cách]
-        style A fill:#90EE90
-        style B fill:#98FB98
-        style C fill:#90EE90 
-        style D fill:#98FB98
     end
 
     subgraph Processing ["Xử lý & Phân tích"]
@@ -53,13 +48,6 @@ flowchart TD
         G --> H{Phân loại}
         H --> |Class 1| I[Basket]
         H --> |Class 2| J[Backboard]
-        
-        style E fill:#87CEEB
-        style F fill:#87CEEB
-        style G fill:#DDA0DD
-        style H fill:#FFB6C1
-        style I fill:#98FB98
-        style J fill:#98FB98
     end
 
     subgraph Analysis ["Phân tích dữ liệu"]
@@ -68,11 +56,6 @@ flowchart TD
         K --> M[Depth Analysis]
         D --> M
         L & M --> N[Object Info]
-        
-        style K fill:#FFE4B5
-        style L fill:#F0E68C
-        style M fill:#F0E68C
-        style N fill:#DEB887
     end
 
     subgraph Control ["Điều khiển Robot"]
@@ -82,22 +65,7 @@ flowchart TD
         Q --> R[4 DC Servo]
         Q --> S[2 Xi lanh khí nén]
         Q --> T[LED Status]
-        
-        style O fill:#FFA07A
-        style P fill:#FFA07A
-        style Q fill:#CD853F
-        style R fill:#CD853F
-        style S fill:#CD853F
-        style T fill:#CD853F
     end
-
-    %% Kết nối giữa các subgraph
-    classDef default fill:#fff,stroke:#333,stroke-width:2px;
-    classDef subgraph fill:#fff,stroke:#333,stroke-width:2px;
-    class Sensors,Processing,Analysis,Control subgraph;
-
-    %% Animation
-    linkStyle default stroke-width:2px,fill:none,stroke-dasharray: 5 5;
 
 ### Quy trình hoạt động
 
