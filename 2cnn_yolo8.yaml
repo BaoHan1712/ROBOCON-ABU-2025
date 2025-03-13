@@ -1,0 +1,13 @@
+names:
+- backboard
+- basket
+nc: 2
+roboflow:
+  license: Private
+  project: basket-dmyr9
+  url: https://universe.roboflow.com/basket-zsmgw/basket-dmyr9/dataset/3
+  version: 3
+  workspace: basket-zsmgw
+test: /kaggle/working/basket-3/test
+train: /kaggle/working/basket-3/train
+val: /kaggle/working/basket-3/valid
