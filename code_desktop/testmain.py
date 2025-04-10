@@ -9,11 +9,11 @@ from cover.sort import Sort
 
 # ser = serial.Serial('/dev/ttyUSB0', 115200)
 
-classnames = ['backboard', 'basket']
 
-model = YOLO("model\cnn_2cls_ver2.engine", task="detect")
 
-tracker = Sort(max_age=90)
+model = YOLO(r"model\truyen_1cls.pt", task="detect")
+
+tracker = Sort(max_age=40)
 
 prev_frame_time = 0
 new_frame_time = 0
@@ -64,7 +64,7 @@ while True:
     detections = np.empty((0, 6))
     new_frame_time = cv2.getTickCount()
     frame = cv2.resize(frame, (740, 640))
-    results = model.predict(source=frame, imgsz=640, conf=0.5, verbose=False)
+    results = model.predict(source=frame, imgsz=640, conf=0.4, verbose=False)
     
     ## lấy khoảng cách từ lidar
     # min_distance = lidar_thread.get_min_distance()
@@ -79,7 +79,7 @@ while True:
             classindex = int(classindex)
             
             
-            if conf > 50:
+            if conf > 40:
                 x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                 new_detections = np.array([x1, y1, x2, y2, conf, classindex])
                 detections = np.vstack((detections, new_detections))

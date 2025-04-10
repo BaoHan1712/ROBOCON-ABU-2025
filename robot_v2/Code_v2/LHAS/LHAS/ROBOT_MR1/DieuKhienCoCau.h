@@ -180,7 +180,7 @@ void autorun(int rx_position, int distance) {
             case 1: // Đi thẳng
                 robotRun(-450, 20);
                 break;
-            case 4: // Dừng
+            case 555: // Dừng
                 robotStop(20);
                 break;
             default:

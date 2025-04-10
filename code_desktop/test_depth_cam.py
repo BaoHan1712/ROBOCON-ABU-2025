@@ -11,8 +11,8 @@ import pyrealsense2 as rs
 # Khởi tạo pipeline
 pipeline = rs.pipeline()
 config = rs.config()
-config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+config.enable_stream(rs.stream.depth, 640, 360, rs.format.z16, 60)
+config.enable_stream(rs.stream.color, 640, 360, rs.format.bgr8, 30)
 
 # # Lấy thông tin về các chế độ được hỗ trợ
 pipeline_profile = pipeline.start(config)
@@ -82,11 +82,11 @@ try:
         frame = np.asanyarray(color_frame.get_data())
         depth_image = np.asanyarray(depth_frame.get_data())
 
-        detections = np.empty((0, 6))
+        detections = np.empty((0, 5))
         new_frame_time = cv2.getTickCount()
         frame = cv2.resize(frame, (740, 640))
 
-        results = model.predict(source=frame, imgsz=640, conf = 0.55, verbose=False)
+        results = model.predict(source=frame, imgsz=320, conf = 0.4, verbose=False)
 
         for info in results:
             boxes = info.boxes
@@ -98,7 +98,7 @@ try:
                 classindex = int(classindex)
                 objectdetect = classnames[classindex]
                 
-                if conf > 55:
+                if conf > 40:
                     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                     new_detections = np.array([x1, y1, x2, y2, conf])
                     detections = np.vstack((detections, new_detections))
@@ -124,8 +124,11 @@ try:
                 cv2.circle(frame, (cx, cy), 6, (0, 0, 255), -1)
                 cv2.putText(frame, f'{objectdetect} {id} {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
                 
-            # Truyền tham số xuống stm32
-                # calculator_offset_stm(frame,cx,x1,y2)
+                # Lấy khoảng cách từ depth frame
+                cx = min(max(cx, 0), depth_image.shape[1] - 1)  # Giới hạn cx
+                cy = min(max(cy, 0), depth_image.shape[0] - 1)  # Giới hạn cy
+                distance = depth_image[int(cy), int(cx)]   # Chuyển đổi từ mm sang mét
+                cv2.putText(frame, f'Distance: {distance:.2f}m', (x1, y1 - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
                
                 last_positions[id][4] -= 1

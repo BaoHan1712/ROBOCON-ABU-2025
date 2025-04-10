@@ -18,8 +18,8 @@ def process_detections(detections, tracker):
     conf = None
 
     if detections.shape[0] > 0:
-        basket_detections = detections[detections[:, 5] == 1]  
-        backboard_detections = detections[detections[:, 5] == 0] 
+        basket_detections = detections[detections[:, 5] == 0]  
+        backboard_detections = detections[detections[:, 5] == 1] 
 
         # Xử lý basket nếu có
         if basket_detections.shape[0] > 0:

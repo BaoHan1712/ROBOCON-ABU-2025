@@ -103,8 +103,8 @@ try:
                 
                 if conf > 35:
                     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-                    new_detections = np.array([x1, y1, x2, y2, conf])
-                    detections = np.vstack((detections, new_detections))
+                    new_detections = np.array([x1, y1, x2, y2, conf, classindex])
+                    detections = np.vstack((detections, new_detections)) if detections.size else new_detections.reshape(1, -1)
 
         # Chỉ giữ lại 1 vật thể 
         if detections.shape[0] > 0:

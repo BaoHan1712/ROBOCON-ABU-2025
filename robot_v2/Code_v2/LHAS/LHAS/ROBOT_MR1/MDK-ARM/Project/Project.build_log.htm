@@ -21,7 +21,7 @@ Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.7.0
 Dialog DLL:      TCM.DLL V1.46.0.0
  
 <h2>Project:</h2>
-C:\AI_folder\robocon\Code_v2\Code_v2\LHAS\LHAS\ROBOT_MR1\MDK-ARM\Project.uvprojx
+C:\AI_folder\robocon\robot_v2\Code_v2\LHAS\LHAS\ROBOT_MR1\MDK-ARM\Project.uvprojx
 Project File Date:  03/04/2025
 
 <h2>Output:</h2>
@@ -82,34 +82,27 @@ compiling main.c...
   						XI_LANH_HA_NONG;
 ..\DieuKhienCoCau.h(129): warning:  #1035-D: single-precision operand implicitly converted to double-precision
           speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * tanh(0.05 * distanceFromCenter);
-..\DieuKhienCoCau.h(156): warning:  #140-D: too many arguments in function call
+..\DieuKhienCoCau.h(154): warning:  #140-D: too many arguments in function call
               robotRotateStop(0);
 ..\DieuKhienCoCau.h(146): warning:  #177-D: variable "tocdo"  was declared but never referenced
   	  float tocdo = 0.5;
-..\DieuKhienCoCau.h(180): warning:  #187-D: use of "=" where "==" may have been intended
-  		if((rx_position = 2)){
-..\DieuKhienCoCau.h(184): warning:  #187-D: use of "=" where "==" may have been intended
-  		if(rx_position = 3){
-..\DieuKhienCoCau.h(189): error:  #29: expected an expression
-  		if(rx_position = 555 && !=3 &&!=2)				robotRun(-450, 20);
-..\DieuKhienCoCau.h(189): warning:  #1293-D: assignment in condition
-  		if(rx_position = 555 && !=3 &&!=2)				robotRun(-450, 20);
-..\DieuKhienCoCau.h(173): warning:  #550-D: parameter "rx_position"  was set but never used
-  void autorun(int rx_position, int distance) {
-..\DieuKhienCoCau.h(231): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+..\DieuKhienCoCau.h(223): warning:  #1035-D: single-precision operand implicitly converted to double-precision
       lucBanCam = GOC_MOC + ((received_distance - MOCCHUAN) / MOCCHUAN) * (GOC_MAX1 - GOC_MIN1) * GOC_ALPHA;
-..\DieuKhienCoCau.h(219): warning:  #177-D: variable "gocBanCam"  was declared but never referenced
+..\DieuKhienCoCau.h(211): warning:  #177-D: variable "gocBanCam"  was declared but never referenced
       float gocBanCam = 0;
-..\DieuKhienCoCau.h(253): warning:  #177-D: variable "gocBan"  was declared but never referenced
+..\DieuKhienCoCau.h(245): warning:  #177-D: variable "gocBan"  was declared but never referenced
       float gocBan = 0;
-..\DieuKhienCoCau.h(307): warning:  #177-D: variable "gocBan"  was declared but never referenced
+..\DieuKhienCoCau.h(299): warning:  #177-D: variable "gocBan"  was declared but never referenced
       float gocBan = 0;
 ..\BasicFunction.h(55): warning:  #177-D: variable "td_x"  was declared but never referenced
   	int tocdo = 20, td_x = 5;
 ..\BasicFunction.h(288): warning:  #1-D: last line of file ends without a newline
   }
-..\main.c: 39 warnings, 1 error
-".\Project\Project.axf" - 1 Error(s), 39 Warning(s).
+..\main.c: 35 warnings, 0 errors
+linking...
+Program Size: Code=47968 RO-data=960 RW-data=1044 ZI-data=12252  
+FromELF: creating hex file...
+".\Project\Project.axf" - 0 Error(s), 35 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -131,7 +124,6 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.4.0
-Target not created.
 Build Time Elapsed:  00:00:01
 </pre>
 </body>

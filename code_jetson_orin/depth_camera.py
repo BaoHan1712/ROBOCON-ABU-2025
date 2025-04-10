@@ -53,7 +53,7 @@ def get_distance(depth_frame, x, y):
 
 
 
-def send_offset_stm(offset, min_distance,position, ser):
+def send_offset_stm(offset, min_distance, ser):
     """Truyền dữ liệu khoảng cách và độ lệch xuống STM32"""
     if offset is not None:
         offset = int(offset) 
@@ -64,14 +64,13 @@ def send_offset_stm(offset, min_distance,position, ser):
         min_distance = depth_history[-1] if depth_history else 11
 
     distance = int(min_distance)
-    create_stm32_message_1(offset, distance,position, ser)
+    create_stm32_message_1(offset, distance, ser)
 
 def visualize_detections(frame, basket_detected, backboard_detected, basket_info, backboard_info, conf, distance):
     """Hiển thị kết quả phát hiện lên frame"""
     offset = None
-    # position = None
     min_distance = None
-    direction = None
+
 
     if basket_detected:
         x1, y1, x2, y2, id = map(int, basket_info)
@@ -81,10 +80,7 @@ def visualize_detections(frame, basket_detected, backboard_detected, basket_info
         # Lấy khoảng cách từ depth camera
         min_distance = get_distance(distance, cx, cy)
         
-        # Lấy offset và position
         offset = calculator_offset_stm32(frame, cx, x1, y2)
-        # position = calculate_position(frame, cx)
-        direction = auto_drive(frame, offset, 2)
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 1)
         draw_plus_sign(frame,(cx,cy),5,(0,255,0),1)
@@ -98,14 +94,13 @@ def visualize_detections(frame, basket_detected, backboard_detected, basket_info
         min_distance = get_distance(depth_frame, cx, cy)
         
         offset = calculator_offset_stm32(frame, cx, x1, y2)
-        # position = calculate_position(frame, cx)
-        direction = auto_drive(frame, offset, 2)
+
+
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 1)
         draw_plus_sign(frame,(cx,cy),5,(0,255,0),1)
         cv2.putText(frame, f'backboard {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
         
-    return offset, direction, min_distance
-    # return offset, position, min_distance
+    return offset, min_distance
 
 while True:
     current_time = time.time()
@@ -122,7 +117,7 @@ while True:
 
     frame = np.asanyarray(color_frame.get_data())
     detections = np.empty((0, 6))
-    results = model.predict(source=frame, imgsz=640, conf=0.75, verbose=False, max_det=1)
+    results = model.predict(source=frame, imgsz=640, conf=0.65, verbose=False, max_det=1)
     
     for info in results:
         boxes = info.boxes
@@ -133,15 +128,15 @@ while True:
             conf = math.ceil(conf * 100)
             classindex = int(classindex)
             
-            if conf > 75:
+            if conf > 65:
                 x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                 new_detections = np.array([x1, y1, x2, y2, conf, classindex])
                 detections = np.vstack((detections, new_detections))
 
     basket_detected, backboard_detected, basket_info, backboard_info, conf = process_detections(detections, tracker)
 
-    offset_2, direction, min_distance = visualize_detections(frame, basket_detected, backboard_detected, basket_info, backboard_info, conf, depth_frame)
-    send_offset_stm(offset_2, min_distance, direction,ser)
+    offset_2, min_distance = visualize_detections(frame, basket_detected, backboard_detected, basket_info, backboard_info, conf, depth_frame)
+    send_offset_stm(offset_2, min_distance,ser)
 
     # Hiển thị FPS lên frame
     cv2.putText(frame, f'FPS: {fps:.2f}', (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
