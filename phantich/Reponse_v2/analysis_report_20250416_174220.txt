@@ -1,0 +1,22 @@
+BÁO CÁO PHÂN TÍCH KHOẢNG CÁCH
+Thời gian phân tích: 2025-04-16 17:42:21
+
+=== THỐNG KÊ CƠ BẢN ===
+Số lượng mẫu: 2210.00
+Giá trị nhỏ nhất: 920.00
+Giá trị lớn nhất: 1370.00
+Giá trị trung bình: 1136.74
+Độ lệch chuẩn: 52.68
+Trung vị: 1130.00
+
+=== PHÂN TÍCH BẤT THƯỜNG ===
+Tổng số điểm bất thường: 109
+Tỷ lệ bất thường: 4.93%
+
+Chi tiết các loại bất thường:
+- Bất thường theo Z-score: 36
+- Bất thường theo IQR: 97
+- Bất thường theo độ biến thiên: 21
+
+=== PHÂN TÍCH XU HƯỚNG ===
+Xu hướng chung: tăng dần

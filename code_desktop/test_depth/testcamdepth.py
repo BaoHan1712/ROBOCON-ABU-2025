@@ -1,6 +1,6 @@
 import cv2
 from ultralytics import YOLO
-from utils import calculator_offset, calculator_distance
+from cover.utils import calculator_offset, calculator_distance
 import math
 # import serial
 import time

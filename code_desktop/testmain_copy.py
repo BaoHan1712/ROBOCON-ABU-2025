@@ -3,7 +3,7 @@ import numpy as np
 import math
 from ultralytics import YOLO
 from cover.sort import Sort
-from utils import draw_plus_sign, calculator_offset_stm32
+from cover.utils import draw_plus_sign, calculator_offset_stm32
 
 # Khởi tạo model
 model = YOLO("model/segment.pt", task="segment")

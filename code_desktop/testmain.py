@@ -1,6 +1,6 @@
 import cv2
 from ultralytics import YOLO
-from utils import *
+from cover.utils import *
 import math
 # import serial
 import numpy as np

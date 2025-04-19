@@ -10,7 +10,7 @@ from cover.sort import Sort
 # ser = serial.Serial('/dev/ttyUSB0', 115200)
 
 
-model = YOLO(r"rim_robot.pt", task="detect")
+model = YOLO(r"model/rim_robot.pt", task="detect")
 
 tracker = Sort(max_age=40)
 
@@ -33,7 +33,7 @@ def send_offset_stm( offset ,min_distance, direction):
     distance = int(min_distance) if min_distance is not None else 11
     create_stm32_message_1(offset, distance, direction, ser)
 
-def visualize_detections(frame, basket_detected, backboard_detected, basket_info, backboard_info, conf, distance):
+def visualize_detections(frame, basket_detected, backboard_detected, basket_info, backboard_info, conf):
     """Hiển thị kết quả phát hiện lên frame"""
     offset = None
     min_distance = None
@@ -59,10 +59,23 @@ def visualize_detections(frame, basket_detected, backboard_detected, basket_info
         x1, y1, x2, y2, id = map(int, backboard_info)
         w, h = x2 - x1, y2 - y1
         cx, cy = x1 + w // 2, y1 + h // 2
+
+        # min_distance = get_distance(depth_frame, cx, cy)
+        
+        # offset = calculator_offset_stm32(frame, cx, x1, y2)
+
+
+        # cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 1)
+        # draw_plus_sign(frame,(cx,cy),5,(0,255,0),1)
+        # cv2.putText(frame, f'backboard {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+        x1, y1, x2, y2, id = map(int, backboard_info)
+        w, h = x2 - x1, y2 - y1
+        cx, cy = x1 + w // 2, y1 + h // 2
  
-        # Tính offset cho bảng (nhưng không trả về)
+        # Tính offset 
         temp_offset = calculator_offset_stm32(frame, cx, x1, y2)
-        canhdoi = temp_offset * 2
+        canhdoi = temp_offset * 7
         
         # Điểm bắt đầu của đường thẳng đứng (cạnh đối)
         start_y = cy + 200
@@ -87,16 +100,16 @@ def visualize_detections(frame, basket_detected, backboard_detected, basket_info
             hypotenuse = calculate_angle(canhdoi)
             quydoi = int(hypotenuse)-adjacent
             print(f"quydoi {quydoi}")
-            cv2.putText(frame, f"Distance: {quydoi:.1f}cm", (cx + 10, cy + 20),
+            cv2.putText(frame, f"Distance: {quydoi:.1f}mm", (cx + 10, cy + 20),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
                        
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 1)
         draw_plus_sign(frame,(cx,cy),5,(0,255,0),1)
         cv2.putText(frame, f'backboard {conf}', (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
         
-    return offset if basket_detected else None, min_distance, quydoi
+    return quydoi
 
-adjacent = 250  # cạnh kề
+adjacent = 350  # cạnh kề
 def calculate_angle(deviation_pixels):
    
     
@@ -117,7 +130,7 @@ while True:
 
     detections = np.empty((0, 6))
     new_frame_time = cv2.getTickCount()
-    frame = cv2.resize(frame, (740, 640))
+    frame = cv2.resize(frame, (640, 480))
     results = model.predict(source=frame, imgsz=640, conf=0.5, verbose=False, max_det=2)
     
     ## lấy khoảng cách từ lidar
@@ -140,7 +153,7 @@ while True:
 
     # Xử lý vật thể
     basket_detected, backboard_detected, basket_info, backboard_info, conf = process_detections(detections, tracker)
-    offset_2, min_distance, quydoi = visualize_detections(frame, basket_detected, backboard_detected, basket_info, backboard_info, conf, 11)
+    offset_2 = visualize_detections(frame, basket_detected, backboard_detected, basket_info, backboard_info, conf)
     # send_offset_stm(offset_2, min_distance,quydoi,ser)
     
     fps = cv2.getTickFrequency() / (new_frame_time - prev_frame_time)

@@ -1,6 +1,6 @@
 import cv2
 from ultralytics import YOLO
-from utils import calculator_offset_stm32, create_stm32_message_1
+from cover.utils import calculator_offset_stm32, create_stm32_message_1
 import math
 import serial
 import numpy as np
