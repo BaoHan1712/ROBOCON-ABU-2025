@@ -42,13 +42,13 @@ def create_stm32_message_1(offset, distance, ser):
 
     # Các byte cấu trúc gói tin
     header = 0x02
-    end_byte = 0x03
+    # end_byte = 0x03
 
-    # Tính checksum
-    checksum = (header + offset + (distance >> 8) + (distance & 0xFF)) % 256
+    # # Tính checksum
+    # checksum = (header + offset + (distance >> 8) + (distance & 0xFF)) % 256
 
     try:
-        packet = struct.pack(">B", header) + struct.pack(">B", offset) + struct.pack(">H", distance) + struct.pack(">B", checksum) + struct.pack(">B", end_byte)
+        packet = struct.pack(">B", header) + struct.pack(">B", offset) + struct.pack(">H", distance)
         ser.write(packet)  # Gửi gói tin qua UART
     except struct.error as e:
         print(f"Error creating STM32 message: {e}")

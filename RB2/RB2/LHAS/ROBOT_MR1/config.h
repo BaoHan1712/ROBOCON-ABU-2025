@@ -32,8 +32,8 @@ vu8 DATA_SPEED[80]=			{255,1,0,0,				// 1- ID = 1, DIRECT = 0, SPEED = 0
 ////////////////////// --KHAI BAO DINH NGHIA PWM 3 BANH XE-- /////////////////////////////////////
 #define	DIA_CHI_START1 												DATA_SPEED[0]=255
 #define	ID1 		 															DATA_SPEED[1]=1
-#define mor_rotate_0h_next 					 					DATA_SPEED[2]=0
-#define mor_rotate_0h_back										DATA_SPEED[2]=1
+#define mor_rotate_0h_next 					 					DATA_SPEED[2]=1
+#define mor_rotate_0h_back										DATA_SPEED[2]=0
 #define	mor_rotate_0h			 		 								DATA_SPEED[3]
 
 #define	DIA_CHI_START2 												DATA_SPEED[4]=255
@@ -51,8 +51,8 @@ vu8 DATA_SPEED[80]=			{255,1,0,0,				// 1- ID = 1, DIRECT = 0, SPEED = 0
 
 #define	DIA_CHI_START4											  DATA_SPEED[12]=255
 #define	ID4																    DATA_SPEED[13]=4
-#define Mor_8h_next					 									DATA_SPEED[14]=0
-#define Mor_8h_back														DATA_SPEED[14]=1
+#define Mor_8h_next					 									DATA_SPEED[14]=1
+#define Mor_8h_back														DATA_SPEED[14]=0
 #define	Mor_8h		 														DATA_SPEED[15]
 
 #define	DIA_CHI_START5 												DATA_SPEED[16]=255
@@ -289,31 +289,23 @@ int sang_trai = 0;
 int di_xuong = 0;
 int di_len = 0;
 
-
-
 int target_BT_Xoay = 0;
 int Min_BT_Xoay =  460;
 int Max_BT_Xoay = 570;
 
-
 int taget_BT_Nong_Ban = 588;
 int Min_BT_Nong_Ban = 480;
 int Max_BT_Nong_Ban = 630;
-
-
-
-
-
 int goc_ban = 440;
  
-
-
 int target_Nang_Ha;
-int Min_Nang_Ha = 19;
-int Max_Nang_Ha = 900	- 10;
+int Min_Nang_Ha = 37;     //49;
+int Max_Nang_Ha = 890	- 10;
+
+float power_shot;
+float power_shot_GocCheo;
+
 static bool on_off_nang = true;
-
-
 extern int state_nang;
 
 int Max_BT_Nang_Lua = 730;
@@ -342,7 +334,7 @@ vs32 ENCODER_0h()
 		if(abs(en - enOld) < 5) i++;
 		enOld = en;
 	}
-	return en;
+	return -en;
 }
 
 vs32 ENCODER_4h()
@@ -1081,7 +1073,7 @@ void UART1_DMA_RX(u32 baudrate)
 
 	/* Configure the Priority Group to 2 bits */
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-	/* Enable the UART4 RX DMA Interrupt */
+	/* Enable the RX DMA Interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = DMA2_Stream2_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
@@ -1150,7 +1142,7 @@ void UART2_DMA_TX(u32 baudrate)
 /////////////////////////////////
  /* Configure the Priority Group to 2 bits */
    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-   /* Enable the UART4 RX DMA Interrupt */
+   /* Enable the UART2 RX DMA Interrupt */
    NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream6_IRQn;
    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
@@ -1218,7 +1210,7 @@ void UART3_DMA_RX(u32 baudrate)
    
    /* Configure the Priority Group to 2 bits */
    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-   /* Enable the UART4 RX DMA Interrupt */
+   /* Enable the UART3 RX DMA Interrupt */
    NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream1_IRQn;
    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
@@ -1252,72 +1244,95 @@ void UART3_DMA_RX(u32 baudrate)
 }
 
 //====================	========UART4=======================================
+vu8 RX_UART4[4];
+
 void UART4_DMA_RX(u32 baudrate)
 {		
-	DMA_InitTypeDef DMA_InitStructure;
-	NVIC_InitTypeDef NVIC_InitStructure;
-	USART_InitTypeDef USART_InitStructure;
-	GPIO_InitTypeDef GPIO_InitStructure;
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
-	/*-------------------------- GPIO Configuration ----------------------------*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
-	/* Connect USART pins to AF */
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource0, GPIO_AF_UART4);
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_UART4);
+    DMA_InitTypeDef DMA_InitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
+    USART_InitTypeDef USART_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
+    
+    // C?u hình clock cho các ngo?i vi
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
 
-	USART_InitStructure.USART_BaudRate = baudrate;
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;
-	USART_InitStructure.USART_Parity = USART_Parity_No;
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None; 
-	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx; 
-	USART_Init(UART4, &USART_InitStructure); 
-	USART_Cmd(UART4, ENABLE);
+    // C?u hình GPIO gi? nguyên
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
 
-	/////////////////////////////////////////////	   
+    GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_UART4);
+    GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_UART4);
 
-	/* Configure the Priority Group to 2 bits */
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-	/* Enable the UART4 RX DMA Interrupt */
-	NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream2_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStructure);
+    // C?u hình UART gi? nguyên 
+    USART_InitStructure.USART_BaudRate = baudrate;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_Parity = USART_Parity_No;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    USART_Init(UART4, &USART_InitStructure);
+    USART_Cmd(UART4, ENABLE);
 
-	DMA_DeInit(DMA1_Stream2);
-	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
-	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory; // Receive
-	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)RX_USART2;
-	DMA_InitStructure.DMA_BufferSize = 8;//(uint16_t)sizeof(Buffer);
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&UART4->DR;
-	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
-	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-	DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Enable;
-	DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
-	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single; 
-	DMA_Init(DMA1_Stream2, &DMA_InitStructure); 
-	/* Enable the USART Rx DMA request */
-	USART_DMACmd(UART4, USART_DMAReq_Rx, ENABLE); 
-	/* Enable DMA Stream Half Transfer and Transfer Complete interrupt */
-	USART_DMACmd(UART4, USART_DMAReq_Rx, ENABLE); // Enable USART Rx DMA Request
-	DMA_ITConfig(DMA1_Stream2, DMA_IT_TC, ENABLE);  
-	/* Enable the DMA RX Stream */
-	DMA_Cmd(DMA1_Stream2, ENABLE);	
+    // C?u hình ng?t DMA
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream2_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2; 
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    // C?u hình DMA 
+    DMA_DeInit(DMA1_Stream2);
+    DMA_InitStructure.DMA_Channel = DMA_Channel_4;
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
+    DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)RX_UART4;
+    DMA_InitStructure.DMA_BufferSize = 4;
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&UART4->DR;
+    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Normal; // Thay d?i t? Circular sang Normal
+    DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+    DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable; // Disable FIFO mode
+    DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
+    DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+    DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+    DMA_Init(DMA1_Stream2, &DMA_InitStructure);
+
+    USART_DMACmd(UART4, USART_DMAReq_Rx, ENABLE);
+    DMA_ITConfig(DMA1_Stream2, DMA_IT_TC, ENABLE);
+    DMA_Cmd(DMA1_Stream2, ENABLE);
 }
 
+vu8 received_offset_2 = 0;  
+vu16 received_distance_2 = 0;
+// Hàm x? lý d? li?u gi? nguyên c?u trúc
+void ProcessReceivedData_2(void)
+{
+    vu8 offset_2 = 0;
+    vu16 distance_2 = 0;
+
+    if (RX_UART4[0] == 0x02)
+    {
+        offset_2 = RX_UART4[1];
+        distance_2 = (RX_UART4[2] << 8) | RX_UART4[3];
+        
+        received_offset_2 = offset_2;
+        received_distance_2 = distance_2;
+    }
+    else
+    {
+        received_offset_2 = 4;
+        received_distance_2 = 4;
+    }
+}
 //========================================================================
 //---------------------------- KHAI BAO UART 5-----------------------------
 void UART5_DMA_TX(u32 baudrate)
@@ -1404,9 +1419,8 @@ DMA_Cmd(DMA1_Stream7, ENABLE);
 
 
 /////////////////
-////////////////////////////////////////////////////////////
-
-#define UART_BUFFER_SIZE 10
+/////////////////////////////////////////UART6///////////////////
+#define UART_BUFFER_SIZE 4
 vu8 RX_USART6[UART_BUFFER_SIZE];
 vu8 received_offset = 0;  
 vu16 received_distance = 0;
@@ -1425,7 +1439,7 @@ void UART6_DMA_RX(u32 baudrate)
    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
    GPIO_Init(GPIOC, &GPIO_InitStructure);
    /* Connect USART pins to AF */
    GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_USART6);
@@ -1449,58 +1463,59 @@ void UART6_DMA_RX(u32 baudrate)
    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
    NVIC_Init(&NVIC_InitStructure);
 	
-	 DMA_DeInit(DMA2_Stream1);
+    DMA_DeInit(DMA2_Stream1); 
    DMA_InitStructure.DMA_Channel = DMA_Channel_5;
    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory; // Receive
-   DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)RX_USART6;
-   DMA_InitStructure.DMA_BufferSize = 16;//(uint16_t)sizeof(DATA_COLOR);
+   DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)RX_USART6;;
+   DMA_InitStructure.DMA_BufferSize =UART_BUFFER_SIZE;//(uint16_t)sizeof(DATA_COLOR);
    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&USART6->DR;
    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-   DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
-   DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-   DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Enable;
+	 
+   DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;//DMA_Mode_Circular
+  DMA_InitStructure.DMA_Priority = DMA_Priority_High;//DMA_Priority_High;
+  DMA_InitStructure.DMA_FIFOMode =DMA_FIFOMode_Disable;
    DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
    DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
    DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single; 
    DMA_Init(DMA2_Stream1, &DMA_InitStructure); 
    /* Enable DMA Stream Half Transfer and Transfer Complete interrupt */
    USART_DMACmd(USART6, USART_DMAReq_Rx, ENABLE); // Enable USART Rx DMA Request
-	 DMA_ITConfig(DMA2_Stream1, DMA_IT_TC, ENABLE);  
-   /* Enable the DMA RX Stream */
+	 DMA_ITConfig(DMA2_Stream1, DMA_IT_TC, ENABLE);
+/* Enable the DMA RX Stream */
    DMA_Cmd(DMA2_Stream1, ENABLE);
+	 
+
 }
-
-
-
-
-
+extern int ketqua;
 void ProcessReceivedData(void)
 {
-  vu8 calc_checksum = 0;
-	vu8 offset = 0;
-	vu16 distance = 0;
-    
-    // Ki?m tra header byte (0x02)
-    if(RX_USART6[0] == 0x02)
+//    vu8 calc_checksum = 0;
+    vu8 offset = 0;
+    vu16 distance = 0;
+
+    // Ki?m tra byte b?t d?u c? d?ng kh?ng (0x02)
+    if (RX_USART6[0] == 0x02)
     {
         // L?y d? li?u offset t? byte th? 2
         offset = RX_USART6[1];
-        
-        // L?y d? li?u distance t? byte th? 3 v? 4
-        distance = (RX_USART6[2] << 8) | RX_USART6[3]; 
-        
-        // T?nh checksum
-        calc_checksum = (RX_USART6[0] + RX_USART6[1] + RX_USART6[2] + RX_USART6[3]) % 256;
-        
-        // Ki?m tra checksum v? end byte
-        if(calc_checksum == RX_USART6[4] && RX_USART6[5] == 0x03)
-        {
-				received_offset = offset;
-				received_distance = distance;
+
+        // L?y d? li?u distance t? byte 3 v? 4 (big-endian)
+        distance = (RX_USART6[2] << 8) | RX_USART6[3];
+
+
+            // N?u d?ng th? luu d? li?u
+            received_offset = offset;
+            received_distance = distance;
         }
+    
+    else
+    {
+        // N?u sai byte b?t d?u th? cung g?n l?i
+        received_offset = 4;
+        received_distance = 4;
     }
 }
 
@@ -1633,7 +1648,7 @@ void HMI_TRAN(vs32 _so_dong)
 										HMI_DMI("BT_NANG_HA:",	bientronangbongValue,2);
 										break;
 									case 3:
-										HMI_DMI(" LUC :",force_F,3);
+										HMI_DMI(" LUC_chuyen :",force_chuyen,3);
 									//	HMI_DMI("vu_gocXoay :",demVui,3);
 										break;
 									case 4:
@@ -1673,7 +1688,7 @@ void HMI_TRAN(vs32 _so_dong)
 										HMI_DMI("force_L:",force_F,12);  						
 										break;
 									case 13:
-										HMI_DMI("Offset :",received_offset,13);   
+										HMI_DMI("ket qua :",ketqua,13);   
 										break;
 									case 14:
 										HMI_DMI("Distc:",received_distance,14);  

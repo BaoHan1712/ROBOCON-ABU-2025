@@ -43,7 +43,7 @@ static void taskDieuKhienCoCau1(void *pvParameters)
 	{
 
 		if(Ban == 0)	Giu_nang_ha();
-		else					nang_ha = 10;
+		else					nang_ha = 5;
 //		Nong_Ban();
 
 		vTaskDelay(3);
@@ -56,7 +56,7 @@ static void taskDieuKhienCoCau(void *pvParameters)
 	while (1)
 	{
 		//if(R2)					xoaytam(received_offset);
-		if(SHARE)	robotGamePadControl(30, 60);
+		if(SHARE)	robotGamePadControl(30, 67);
 		else			 robotStop(25);
 		
 		Angle_0h();
@@ -95,7 +95,7 @@ static void taskMain(void *pvParameters)
 	UART1_DMA_RX(115200); // usart giao tiep voi laban
 	UART2_DMA_TX(115200); /// DIEU KHIEN DONG CO
 	UART3_DMA_RX(115200); // usart giao tiep de doc gamepad
-	// UART4_DMA_RX(115200);	//SU DUNG DE GIAO TIEP MACH DO LAI
+	UART4_DMA_RX(115200);	//SU DUNG DE GIAO TIEP MACH DO LAI
 	UART5_DMA_TX(921600); // GIAO TIEP MAN HINH HMI
 	// if (SysTick_Config(SystemCoreClock / 1000))while (1);// 1ms truyen du lieu usart den cac slever
 	UART6_DMA_RX(115200);
@@ -138,38 +138,37 @@ while(!Home_wheel_0h()| !Home_wheel_4h() | !Home_wheel_8h());
 
 		reset();
 		//lucbanlazer(lazeTruocValue,received_offset);
-
 		//lucchuyenbong(received_distance);
+		//calculator_dis(lazeTruocValue,received_offset)	;		
 			
-		//calculator_dis(lazeTruocValue,received_offset)	;
 			
-
-		if(CHON_SAN == 1){
-		lucbanlazerDo(lazeTruocValue,received_offset);
-		lucchuyen(received_distance);
-		}
-		else{
-		lucbanlazerXanh(lazeTruocValue,received_offset);
-			lucchuyen(received_distance);
-		}	
-		
+//		if(CHON_SAN == 1){
+//		lucbanlazerDo(lazeTruocValue_Ban,received_offset);
+//		//lucchuyen(received_distance);
+//		}
+//		else{
+//		lucbanlazerXanh(lazeTruocValue_Ban,received_offset);
+//			//lucchuyen(received_distance);
+//		}	
+		lucbanlazer(ketqua, received_distance);
 		if	(bientronangbongValue <= 80) 
-		{		Chuyen_Bong(); 
-				if(LJOY) Luc_co_dinh();
-				Ban_bong();
-		
+		{		//Chuyen_Bong(); 
+			
+				if(LJOY) Luc_co_dinh();		
+				if(R1 && TRIANGLE )		Ban_bong();
+				if(R1 && SQUARE )			Ban_bong_Goc_Cheo_1(); 
+				if(R1 && X )					Ban_bong_Goc_Cheo_2(); 
+				if(R1 && O )					Ban_bong_Goc_Cheo_3();
 		}
 		else if( bientronangbongValue >= 870) 
 		{		    
 			if(L2)  Re_bong();							 
 		}
-		
-		
+		ban_test(lazeTruocValue);
+		Kich_Ban();
 		Chuyen_Bong();
-		Ban_bong();
-		
-		
-		nangnong();
+		lucchuyenbong(received_distance);
+		Nang_ha();
     nuot_bong();		
 	}
 		robotStop(10);

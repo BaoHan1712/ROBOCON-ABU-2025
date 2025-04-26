@@ -21,13 +21,104 @@ Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.7.0
 Dialog DLL:      TCM.DLL V1.46.0.0
  
 <h2>Project:</h2>
-E:\AI_folder\robocon\RB2 (1)\RB2\LHAS\ROBOT_MR1\MDK-ARM\Project.uvprojx
-Project File Date:  04/18/2025
+E:\AI_folder\robocon\RB2\RB2\LHAS\ROBOT_MR1\MDK-ARM\Project.uvprojx
+Project File Date:  04/25/2025
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'D:\keilc\keil_c\ARM\ARMCC\Bin'
 Build target 'Project'
-".\Project\Project.axf" - 0 Error(s), 0 Warning(s).
+compiling main.c...
+..\LID_HMI.h(16): warning:  #223-D: function "strlen" declared implicitly
+      int len = strlen(_buf1);
+..\LID_HMI.h(17): warning:  #223-D: function "strcmp" declared implicitly
+      if (strcmp(Buffer_HMI, _buf1) != 0) {	
+..\LID_HMI.h(18): warning:  #223-D: function "strncpy" declared implicitly
+          strncpy(Buffer_HMI, _buf1, sizeof(Buffer_HMI) - 1);  // Sao chép n?i dung m?i vào Buffer_HMI v?i gi?i h?n kích thu?c
+..\LID_HMI.h(114): warning:  #223-D: function "strcat" declared implicitly
+  strcat (ky_tu,ky_tu_1);
+..\LID_HMI.h(97): warning:  #177-D: variable "k"  was declared but never referenced
+  	char k=0xff,i;
+..\LID_HMI.h(147): warning:  #223-D: function "strcat" declared implicitly
+  strcat (ky_tu,ky_tu_1);
+..\LID_HMI.h(132): warning:  #177-D: variable "k"  was declared but never referenced
+  	char k=0xff,i;
+..\LID_HMI.h(188): warning:  #223-D: function "strcat" declared implicitly
+  strcat (ky_tu,ky_tu_1);
+..\LID_HMI.h(171): warning:  #177-D: variable "k"  was declared but never referenced
+  	char k=0xff,i;
+..\doc_tay_game.h(345): warning:  #177-D: variable "CANH_A"  was declared but never referenced
+  	   float CANH_A,CANH_B;
+..\doc_tay_game.h(345): warning:  #177-D: variable "CANH_B"  was declared but never referenced
+  	   float CANH_A,CANH_B;
+..\config.h(680): warning:  #177-D: variable "NVIC_InitStructure"  was declared but never referenced
+  	NVIC_InitTypeDef NVIC_InitStructure;
+..\config.h(1635): warning:  #188-D: enumerated type mixed with another type
+  											GPIO_WriteBit(GPIOC,GPIO_Pin_15,0);
+..\config.h(1639): warning:  #188-D: enumerated type mixed with another type
+  											GPIO_WriteBit(GPIOC,GPIO_Pin_15,1);
+..\config.h(1674): warning:  #111-D: statement is unreachable
+  										if(CHON_SAN == 1){
+..\config.h(1626): warning:  #177-D: variable "camera"  was declared but never referenced
+  		char*camera="11111111111111111111110111111111";
+..\config.h(1629): warning:  #550-D: variable "_chu_cac_bit"  was set but never used
+  									char _chu_cac_bit[40];
+..\config.h(1757): warning:  #177-D: variable "_k"  was declared but never referenced
+  	{int _k,_i;
+..\config.h(1757): warning:  #177-D: variable "_i"  was declared but never referenced
+  	{int _k,_i;
+..\config.h(1769): warning:  #1-D: last line of file ends without a newline
+  }
+..\3SwerveWheelsControler.h(114): warning:  #177-D: variable "gd"  was declared but never referenced
+  	int goc_den, goc_doi, gd;
+..\3SwerveWheelsControler.h(292): warning:  #177-D: variable "R"  was declared but never referenced
+  		float R,V0hx, V0hy, V4hx, V4hy, V8hx, V8hy;
+..\3SwerveWheelsControler.h(373): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  	absRotate = rotate*0.08;
+..\3SwerveWheelsControler.h(595): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  			robotRotate(robotAngle, (absF(robotAngle - _robotIMUAngle) > 50? (robotAngle > _robotIMUAngle ? rotate: -rotate):(robotAngle - _robotIMUAngle)*0.0005), 0);
+..\DieuKhienCoCau.h(22): warning:  #260-D: explicit type is missing ("int" assumed)
+  extern speed_temp;
+..\DieuKhienCoCau.h(69): warning:  #177-D: variable "gocBan"  was declared but never referenced
+      float gocBan = 0;
+..\DieuKhienCoCau.h(228): warning:  #188-D: enumerated type mixed with another type
+  						XI_LANH_NANG_NONG;
+..\DieuKhienCoCau.h(234): warning:  #188-D: enumerated type mixed with another type
+  						XI_LANH_DAY_BONG_RA;
+..\DieuKhienCoCau.h(238): warning:  #188-D: enumerated type mixed with another type
+  						XI_LANH_HA_NONG;
+..\DieuKhienCoCau.h(240): warning:  #188-D: enumerated type mixed with another type
+  						XI_LANH_DAY_BONG_VAO;
+..\DieuKhienCoCau.h(250): warning:  #188-D: enumerated type mixed with another type
+  				XI_LANH_DAY_BONG_RA;
+..\DieuKhienCoCau.h(254): warning:  #188-D: enumerated type mixed with another type
+  				XI_LANH_HA_NONG;
+..\DieuKhienCoCau.h(256): warning:  #188-D: enumerated type mixed with another type
+  				XI_LANH_DAY_BONG_VAO;
+..\DieuKhienCoCau.h(273): warning:  #188-D: enumerated type mixed with another type
+  																						XI_LANH_NANG_NONG;
+..\DieuKhienCoCau.h(331): warning:  #188-D: enumerated type mixed with another type
+  			XI_LANH_HA_NONG;
+..\DieuKhienCoCau.h(343): warning:  #188-D: enumerated type mixed with another type
+  			XI_LANH_DAY_BONG_RA;
+..\DieuKhienCoCau.h(348): warning:  #188-D: enumerated type mixed with another type
+  			XI_LANH_DAY_BONG_VAO;
+..\DieuKhienCoCau.h(355): warning:  #188-D: enumerated type mixed with another type
+  			XI_LANH_NANG_NONG;
+..\DieuKhienCoCau.h(620): warning:  #188-D: enumerated type mixed with another type
+  		XI_LANH_NANG_NONG;
+..\DieuKhienCoCau.h(656): warning:  #188-D: enumerated type mixed with another type
+  	 XI_LANH_HA_NONG;
+..\San_Do.h(3): warning:  #47-D: incompatible redefinition of macro "LUC_TAI_MOC"  (declared at line 56 of "..\DieuKhienCoCau.h")
+  #define LUC_TAI_MOC 37
+..\San_Do.h(22): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  			filtered_lazeValue = (SMOOTHING_FACTOR * (lazeTruocValue - (received_offset)) + ((1 - SMOOTHING_FACTOR) * filtered_lazeValue));
+..\San_Do.h(16): warning:  #177-D: variable "gocBan"  was declared but never referenced
+      float gocBan = 0;
+..\main.c: 43 warnings, 0 errors
+linking...
+Program Size: Code=50480 RO-data=1112 RW-data=1140 ZI-data=12164  
+FromELF: creating hex file...
+".\Project\Project.axf" - 0 Error(s), 43 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -49,7 +140,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.4.0
-Build Time Elapsed:  00:00:00
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>

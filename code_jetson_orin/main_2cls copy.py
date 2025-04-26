@@ -10,7 +10,7 @@ from cover.sort import Sort
 # ser = serial.Serial('/dev/ttyUSB0', 115200)
 
 
-model = YOLO(r"model/rim_robot.pt", task="detect")
+model = YOLO(r"model\cnn_2cls_ver2.engine", task="detect")
 
 tracker = Sort(max_age=40)
 
@@ -18,7 +18,7 @@ prev_frame_time = 0
 new_frame_time = 0
 
 # Thêm biến để kiểm soát vòng lặp video
-video_path = r"E:\AI_folder\xu_ly_anh\data\h2.mp4"
+video_path = 0
 cap = cv2.VideoCapture(video_path)
 
 ser = 1

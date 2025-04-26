@@ -20,7 +20,11 @@ int ban_bong_state = 0;
 
 //extern vu8 update;
 extern speed_temp;
-extern vu8 Cam;
+extern vu16 received_distance;
+extern vu8 received_offset;
+
+extern vu16 received_distance_2;
+extern vu8 received_offset_2;
 extern float JTL;
 
 int final_force;
@@ -43,95 +47,180 @@ int state_re = 0;
 int state_chuyen = 0;
 int track = 0;
 
-extern int test;
-
+int lazeTruocValue_Ban;
 
 void robotLineRunLeft(vu8 speed);
 void robotLineRunRight(vu8 speed);
 //=========================================BAN BONG==============================
+#define MOCCU 206       
+#define LUC_TAI_MOC 36
+#define LUC_MAX 250
+#define LUC_MIN 20
 
-void Ban_bong(void) {
-    //ban bong
-    if (TOUCHPAD) {
+#define SMOOTHING_FACTOR 0.1  
+
+float filtered_lazeValue = 0;
+
+// H? s? h?i quy mu (suy ra d? l?c t?i MOCCU là dúng)
+#define A 19 
+#define B (log((float)LUC_TAI_MOC / A) / MOCCU)
+
+void lucbanlazer(int ketqua, int received_offset) {
+    float gocBan = 0;
+    float lucBan = 0;
+    float corrected_distance;
+		int rx_offset = received_offset;
+
+    // Làm m?n tín hi?u do kho?ng cách
+   // filtered_lazeValue = (SMOOTHING_FACTOR * lazeTruocValue) + ((1 - SMOOTHING_FACTOR) * filtered_lazeValue);
+			filtered_lazeValue = (SMOOTHING_FACTOR * (ketqua + (rx_offset)) + ((1 - SMOOTHING_FACTOR) * filtered_lazeValue));
+
+    // Tính kho?ng cách chu?n
+    corrected_distance = sqrt((filtered_lazeValue * filtered_lazeValue));
+
+    // Áp d?ng công th?c h?i quy s? mu
+    lucBan = A * exp(B * corrected_distance);
+
+    if (lucBan > LUC_MAX) {
+        lucBan = LUC_MAX;
+    } else if (lucBan < LUC_MIN) {
+        lucBan = LUC_MIN;
+    }
+    force_F = lucBan;    
+    final_force = force_F;
+	
+		}
+float luu_1 = 0;
+float luu_2 = 0;
+uint8_t count_L1 = 0;
+int ketqua = 0;
+
+// Gán c?ng
+float BH = 90;
+float HC = 90;
+float BC = 165; // BH + HC
+
+void ban_test(float lazeTruocValue) {
+	int luc_ban_test = 0;
+    float AB, AC, AH2; 
+    if (L1) {
         vTaskDelay(2);  // Ch?ng d?i nút
-        if (TOUCHPAD) {
-            state++;
-            if (state > 2) state = 0;  // Reset v? 0 khi vu?t quá 2
+        if (L1) {
+            count_L1++;
+            if (count_L1 > 2) count_L1 = 0;  // Reset v? 0 khi vu?t quá 2
 						
-            while (TOUCHPAD);  // Ch? nút nh? ra m?i cho phép nh?n ti?p
+            while (L1);  // Ch? nút nh? ra m?i cho phép nh?n ti?p
         }
     }
+		
+		
 
-    // L?n nh?n 1: C?p nh?t taget_BT_Nong_Ban
-    if (state == 1) {
-        XI_LANH_NANG_NONG;
-				vTaskDelay(3000);
-        Ban = 1;
-				if(final_F_chuyen > 90) final_force =89;
-        Ban_1 = Ban_2 = Ban_3 = final_force;
-        Ban_1_next, Ban_2_next, Ban_3_next;
-    }
+        if (count_L1 == 1) {
+            luu_1 = lazeTruocValue;
+            count_L1++;
+        } else if (count_L1 == 2) {
+            luu_2 = lazeTruocValue;
+            count_L1++;
 
-    // L?n nh?n 2: Ch?y quy trình b?n
-    else if (state == 2) {
-				XI_LANH_DAY_BONG_RA;
-        vTaskDelay(10000); // Wait 1 second
-        Ban_1 = Ban_2 = Ban_3 = 0;
-        Ban = 0;
-				XI_LANH_HA_NONG;
-				vTaskDelay(5000);
-				XI_LANH_DAY_BONG_VAO;
-				LAZER = 0;
-				state = 0;
-				
-		}
+            // Gán giá tr? cho AB, AC
+            AB = luu_1;
+            AC = luu_2;
+
+            // Công th?c tính AH2
+            AH2 = (AB * AB * HC + AC * AC * BH - BH * HC * 190) / BC;
+
+            if (AH2 > 0) {
+                luc_ban_test = sqrt(AH2);
+								ketqua = luc_ban_test;
+            } 
+						else {
+                ketqua = 0;
+            }
+        }
+    
+}
 
 
-			
-			
-//			if (TOUCHPAD) {
-//				XI_LANH_NANG_NONG;
+
+		
+		
+		
+void Ban_bong(void) {
+	
+			if(CB_NHAN_BONG_BO_BAN == 0)
+			{
+				//lazeTruocValue_Ban = ketqua;
+				//lucbanlazer(ketqua,0);
+				Ban_1 = Ban_2 = Ban_3 = final_force; // power_shot , testluc
+				Ban_1_next, Ban_2_next, Ban_3_next;
+			}	
+					
+//    //ban bong
+//    if (TOUCHPAD) {
+//        vTaskDelay(2);  // Ch?ng d?i nút
+//        if (TOUCHPAD) {
+//            state++;
+//            if (state > 2) state = 0;  // Reset v? 0 khi vu?t quá 2
+//						
+//            while (TOUCHPAD);  // Ch? nút nh? ra m?i cho phép nh?n ti?p
+//        }
+//    }
+
+//    // L?n nh?n 1: C?p nh?t taget_BT_Nong_Ban
+//    if (state == 1) {
+//        XI_LANH_NANG_NONG;
 //				vTaskDelay(3000);
 //        Ban = 1;
 //				if(final_F_chuyen > 90) final_force =89;
 //        Ban_1 = Ban_2 = Ban_3 = final_force;
-//        Ban_1_next, Ban_2_next, Ban_3_next;				
-//        vTaskDelay(15000); // Wait for 1.5 seconds
+//        Ban_1_next, Ban_2_next, Ban_3_next;
+//    }
+
+//    // L?n nh?n 2: Ch?y quy trình b?n
+//    else if (state == 2) {
 //				XI_LANH_DAY_BONG_RA;
 //        vTaskDelay(10000); // Wait 1 second
 //        Ban_1 = Ban_2 = Ban_3 = 0;
 //        Ban = 0;
-//        XI_LANH_DAY_BONG_VAO;
 //				XI_LANH_HA_NONG;
+//				vTaskDelay(5000);
+//				XI_LANH_DAY_BONG_VAO;
 //				LAZER = 0;
-//			}				
-
-
-
-
-//			if (TOUCHPAD) {
-//			//	XI_LANH_NANG_NONG;
-//				vTaskDelay(3000);
-//        Ban = 1;
-//				if(final_F_chuyen > 150) final_force =100;
-//        Ban_1 = Ban_2 = Ban_3 = 120;
-//        Ban_1_next, Ban_2_next, Ban_3_next;}
+//				state = 0;
 //				
-//				
-//				
-//				
-//				
-//				if(R2){
-//        //vTaskDelay(15000); // Wait for 1.5 seconds
-//				XI_LANH_DAY_BONG_RA;
-//        vTaskDelay(10000); // Wait 1 second
-//        Ban_1 = Ban_2 = Ban_3 = 0;
-//        Ban = 0;
-//        XI_LANH_DAY_BONG_VAO;
-//				XI_LANH_HA_NONG;
-//			}			
+//		}	
 	}
 
+void Ban_bong_Goc_Cheo_1(void){
+						if(CB_NHAN_BONG_BO_BAN == 0)
+						{
+							lazeTruocValue_Ban = lazeTruocValue-5;
+							lucbanlazer(lazeTruocValue,received_offset);
+							Ban_1 = Ban_2 = Ban_3 = final_force ; // power_shot , testluc
+							Ban_1_next, Ban_2_next, Ban_3_next;
+						}
+	}		
+
+void Ban_bong_Goc_Cheo_2(void){
+						if(CB_NHAN_BONG_BO_BAN == 0)
+						{
+							lazeTruocValue_Ban = lazeTruocValue-10;
+							lucbanlazer(lazeTruocValue,received_offset);
+							Ban_1 = Ban_2 = Ban_3 = final_force  ; // power_shot , testluc
+							Ban_1_next, Ban_2_next, Ban_3_next;
+						}
+	}			
+void Ban_bong_Goc_Cheo_3(void){
+						if(CB_NHAN_BONG_BO_BAN == 0)
+						{
+							lazeTruocValue_Ban = lazeTruocValue-15;
+							lucbanlazer(lazeTruocValue,received_offset);
+						  Ban_1 = Ban_2 = Ban_3 = final_force  ; // power_shot , testluc
+							Ban_1_next, Ban_2_next, Ban_3_next;
+						}
+	}		
+	
+	
 void Chuyen_Bong(void)
 {
 if (R2&&!TOUCHPAD) {
@@ -150,30 +239,45 @@ if (R2&&!TOUCHPAD) {
 						vTaskDelay(5000);
 						XI_LANH_DAY_BONG_VAO;
 						LAZER = 0;
-
-
         }	
-
-
-
 }
+
+
+void Kich_Ban(){
+	
+	if (TOUCHPAD)
+	{
+				XI_LANH_DAY_BONG_RA;
+        vTaskDelay(10000); // Wait 1 second
+        Ban_1 = Ban_2 = Ban_3 = 0;
+        Ban = 0;
+				XI_LANH_HA_NONG;
+				vTaskDelay(5000);
+				XI_LANH_DAY_BONG_VAO;
+				LAZER = 0;
+				state = 0;
+				count_L1 = 0;
+				ketqua = 0;
+}
+}
+
 
 // *****************************88 nang ha bo ban *********************************
 
-
-//**********************************************************************
-
-
-
-void nangnong(void)
- {
+void Nang_ha(void){
  // len
-	if (!R2&&TRIANGLE)												state_giu = 0,	state_nang = 1, state_ha = 0, target_Nang_Ha = Min_Nang_Ha;//165
+	if (!R1&&TRIANGLE){												state_giu = 0,	state_nang = 1, state_ha = 0, target_Nang_Ha = Min_Nang_Ha;
+																						Ban_1 = Ban_2 = Ban_3 = 0;
+																						state_re = 0;
+																						LAZER = 50;
+																						XI_LANH_NANG_NONG;
+	
+	}//165
 	else if(bientronangbongValue <= Min_Nang_Ha + 3 &&  target_Nang_Ha == Min_Nang_Ha && state_giu == 0 )    Ban = 1;
 	 
 	 
 	 // xuong
-	if (!R2&&X)	
+	if (!R1&&X)	
 	{ 	  
 	 
 				target_Nang_Ha = Max_Nang_Ha ;
@@ -223,11 +327,13 @@ void Re_bong(void)
     }
 
    
-    if (state_re == 1 &&CB_NHAN_BONG_BO_BAN == 0) {
-
+    if (state_re == 1&&CB_NHAN_BONG_BO_BAN == 0) {
 			XI_LANH_HA_NONG;
 			vTaskDelay(5000);
-      Ban_1 =26, Ban_2 =220, Ban_3 =26;
+		
+     // Ban_1 =24, Ban_2 =190, Ban_3 =24;
+			//Ban_1 =21, Ban_2 =220, Ban_3 =21;
+			Ban_1 =23, Ban_2 =220, Ban_3 =23;
 			Ban_1_next, Ban_2_next, Ban_3_next;	
     }
 
@@ -236,7 +342,7 @@ void Re_bong(void)
 
 			XI_LANH_DAY_BONG_RA;
       vTaskDelay(5000);
-			XI_LANH_NANG_NONG;
+//			XI_LANH_NANG_NONG;
 						//vTaskDelay(5000);
 	    Ban_1=  Ban_2 = Ban_3 = 0;
 			XI_LANH_DAY_BONG_VAO;
@@ -329,128 +435,77 @@ void Luc_co_dinh(void)
 		
 		
 		
-//#define MOCCU_CHUYEN 2500       
-//#define LUC_TAI_MOC_CHUYEN 80
+#define MOCCU_CHUYEN 1000       
+#define LUC_TAI_MOC_CHUYEN 27
+#define LUC_MAX_CHUYEN 250
+#define LUC_MIN_CHUYEN 0
+
+#define SMOOTHING_FACTOR_CHUYEN 0.1  
+
+float filtered_distance_chuyen = 0;
+
+void lucchuyenbong(int received_distance) {
+		int rx_distance = received_distance;
+    float lucChuyen = 0;
+    float corrected_distance;
+    float A_chuyen = 19.0f;
+    float B_chuyen = logf((float)LUC_TAI_MOC_CHUYEN / A_chuyen) / (float)MOCCU_CHUYEN;  
+
+    filtered_distance_chuyen = (SMOOTHING_FACTOR_CHUYEN * rx_distance) +
+                               ((1 - SMOOTHING_FACTOR_CHUYEN) * filtered_distance_chuyen);
+
+    corrected_distance = filtered_distance_chuyen;
+
+    lucChuyen = A_chuyen * expf(B_chuyen * corrected_distance);  // expf dùng cho float
+
+    // Gi?i h?n l?c
+    if (lucChuyen > LUC_MAX_CHUYEN) {
+        lucChuyen = LUC_MAX_CHUYEN;
+    } else if (lucChuyen < LUC_MIN_CHUYEN) {
+        lucChuyen = LUC_MIN_CHUYEN;
+    }
+
+    force_chuyen = lucChuyen;
+    final_F_chuyen = force_chuyen;
+}
+
+//#define MOCCU_CHUYEN 206       
+//#define LUC_TAI_MOC_CHUYEN 20
 //#define LUC_MAX_CHUYEN 250
-//#define LUC_MIN_CHUYEN 50
+//#define LUC_MIN_CHUYEN 20
+//#define LUC_MAX 250
+//#define LUC_MIN 20
 
-//#define SMOOTHING_FACTOR_CHUYEN 0.1  
+//#define SMOOTHING_FACTOR 0.1  
+//float filtered_chuyen = 0;
+//		
+//// H? s? h?i quy mu (suy ra d? l?c t?i MOCCU là dúng)
+//#define A_CHUYEN 20 
+//#define B_CHUYEN (log((float)LUC_TAI_MOC_CHUYEN / A_CHUYEN) / MOCCU_CHUYEN )
+//	
 
-//float filtered_distance_chuyen = 0;
-
-//void lucchuyenbong(float received_distance) {
-//    float gocChuyen = 0;
-//    float lucChuyen = 0;
-//    float corrected_distance;  
-
-//    filtered_distance_chuyen = (SMOOTHING_FACTOR_CHUYEN * received_distance) + ((1 - SMOOTHING_FACTOR_CHUYEN) * filtered_distance_chuyen);
-
-//    corrected_distance = sqrt((filtered_distance_chuyen * filtered_distance_chuyen));  
-//    lucChuyen = LUC_TAI_MOC_CHUYEN * (corrected_distance / MOCCU_CHUYEN);
-
-//    if (lucChuyen > LUC_MAX_CHUYEN) {
-//        lucChuyen = LUC_MAX_CHUYEN;
-//    } else if (lucChuyen < LUC_MIN_CHUYEN) {
-//        lucChuyen = LUC_MIN_CHUYEN;
+//void lucchuyen(int received_distance) {
+//		float lucBan_chuyen = 0;
+//    float corrected_distance_chuyen;
+//	
+//	filtered_chuyen = (SMOOTHING_FACTOR * (received_distance ) + ((1 - SMOOTHING_FACTOR) * filtered_chuyen));
+//	
+//	corrected_distance_chuyen = sqrt((filtered_chuyen * filtered_chuyen));
+//	
+//	lucBan_chuyen = A_CHUYEN * exp(B_CHUYEN * corrected_distance_chuyen);
+//	
+//	if (lucBan_chuyen > LUC_MAX) {
+//        lucBan_chuyen = LUC_MAX;
+//    } else if (lucBan_chuyen < LUC_MIN) {
+//        lucBan_chuyen = LUC_MIN;
 //    }
 
 
-//    force_chuyen = lucChuyen;    
+//    force_chuyen = lucBan_chuyen;    
 //    final_F_chuyen = force_chuyen;
 
 //    if (force_chuyen == 50) result_chuyen = 10;
-//		
-//		
-//		
-//		
-//			 if (force_chuyen >= 63 && force_chuyen <= 67) { 
-//        result_chuyen = 10.4; // Gi? nguy?n 10
-//    }  		
-//			 if (force_F >= 68 && force_chuyen <= 72) { 
-//        result_chuyen = 10.4; // Gi? nguy?n 10
-//    }  		
-//			 if (force_F >= 73 && force_chuyen <= 77) { 
-//        result_chuyen = 10.6; // Gi? nguy?n 10
-
-//		}		
-//			 if (force_F >= 78 && force_chuyen <= 82) { 
-//        result_chuyen = 10.6; // Gi? nguy?n 10
-
-//		}		
-//			 if (force_F >= 83 && force_chuyen <= 87) { 
-//        result_chuyen = 10.8; // Gi? nguy?n 10
-
-//		}		
-//			 if (force_F >= 88 && force_chuyen <= 92) { 
-//        result_chuyen = 10.8; // Gi? nguy?n 10
-
-//		}	 if (force_F >= 93 && force_chuyen <= 97) { 
-//        result_chuyen = 11; // Gi? nguy?n 10
-
-//		}		
-//		
-//				if (force_F >= 98 && force_chuyen <= 102) { 
-//        result_chuyen = 11; // Gi? nguy?n 10
-
-//		}		
-//				if (force_F >= 103 && force_chuyen <= 107) { 
-//        result_chuyen = 11.2; // Gi? nguy?n 10
-
-//		}			
-//				if (force_F >= 108 && force_chuyen <= 112) { 
-//        result_chuyen = 11.2; // Gi? nguy?n 10
-
-//		}
-//				if (force_F >= 113 && force_chuyen <= 117) { 
-//        result_chuyen = 11.4; // Gi? nguy?n 10
-
-//		}						
-//				if (force_F >= 118 && force_chuyen <= 122) { 
-//        result_chuyen = 11.4; // Gi? nguy?n 10
-
-//		}			
-//		final_F_chuyen = force_chuyen * (result_chuyen)/10 ;		
-//}
-//		
-
-
-#define MOCCU_CHUYEN 206       
-#define LUC_TAI_MOC_CHUYEN 23
-#define LUC_MAX_CHUYEN 250
-#define LUC_MIN_CHUYEN 20
-#define LUC_MAX 250
-#define LUC_MIN 20
-
-#define SMOOTHING_FACTOR 0.1  
-float filtered_chuyen = 0;
-		
-// H? s? h?i quy mu (suy ra d? l?c t?i MOCCU là dúng)
-#define A_CHUYEN 19 
-#define B_CHUYEN (log((float)LUC_TAI_MOC_CHUYEN / A_CHUYEN) / MOCCU_CHUYEN )
-	
-
-void lucchuyen(int received_distance) {
-		float lucBan_chuyen = 0;
-    float corrected_distance_chuyen;
-	
-	filtered_chuyen = (SMOOTHING_FACTOR * (received_distance ) + ((1 - SMOOTHING_FACTOR) * filtered_chuyen));
-	
-	corrected_distance_chuyen = sqrt((filtered_chuyen * filtered_chuyen));
-	
-	lucBan_chuyen = A_CHUYEN * exp(B_CHUYEN * corrected_distance_chuyen);
-	
-	if (lucBan_chuyen > LUC_MAX) {
-        lucBan_chuyen = LUC_MAX;
-    } else if (lucBan_chuyen < LUC_MIN) {
-        lucBan_chuyen = LUC_MIN;
-    }
-
-
-    force_chuyen = lucBan_chuyen;    
-    final_F_chuyen = force_chuyen;
-
-    if (force_chuyen == 50) result_chuyen = 10;
-}		
+//}		
 
 
 
@@ -458,42 +513,42 @@ void lucchuyen(int received_distance) {
 
 
 #include <math.h>
-#define OFFSET_TOLERANCE 2
-#define CENTER 100
-#define MAX_SPEED 4
-#define MIN_SPEED 3
+//#define OFFSET_TOLERANCE 2
+//#define CENTER 100
+//#define MAX_SPEED 4
+//#define MIN_SPEED 3
 
-float calculateSpeed(int received_offset) {
-    // 1. Khai báo bi?n tru?c!
-    float distanceFromCenter;
-    const float slope = 0.057;                 
-    float speedRatio;
-    float speed;
+//float calculateSpeed(int received_offset) {
+//    // 1. Khai báo bi?n tru?c!
+//    float distanceFromCenter;
+//    const float slope = 0.057;                 
+//    float speedRatio;
+//    float speed;
 
-    // 2. Tính kho?ng cách tuy?t d?i
-    distanceFromCenter = fabsf((float)(received_offset - CENTER));
+//    // 2. Tính kho?ng cách tuy?t d?i
+//    distanceFromCenter = fabsf((float)(received_offset - CENTER));
 
-    // 3. Ki?m tra vùng ch?t ? d?ng
-    if (distanceFromCenter <= OFFSET_TOLERANCE) {
-        return 0;
-    }
+//    // 3. Ki?m tra vùng ch?t ? d?ng
+//    if (distanceFromCenter <= OFFSET_TOLERANCE) {
+//        return 0;
+//    }
 
-    // 4. Tính t? l? t?c d?
-    speedRatio = tanhf(slope * distanceFromCenter); 
+//    // 4. Tính t? l? t?c d?
+//    speedRatio = tanhf(slope * distanceFromCenter); 
 
-    // 5. Tính toán t?c d? d?a trên MIN/MAX
-		if (distanceFromCenter < 15) {
-        speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * 0.001;
-    }
-    else speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * speedRatio;
+//    // 5. Tính toán t?c d? d?a trên MIN/MAX
+//		if (distanceFromCenter < 15) {
+//        speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * 0.001;
+//    }
+//    else speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * speedRatio;
 
-    // 6. Gi?i h?n t?c d? t?i da (c?n th?n)
-    if (speed > MAX_SPEED) {
-        speed = MAX_SPEED;
-    }
+//    // 6. Gi?i h?n t?c d? t?i da (c?n th?n)
+//    if (speed > MAX_SPEED) {
+//        speed = MAX_SPEED;
+//    }
 
-    return speed;
-}
+//    return speed;
+//}
 
 //void xoaytam(int received_offset) {
 //	
@@ -563,11 +618,7 @@ void nuot_bong(void)
 		LAZER = 50;
 		Ban_1 = Ban_2 = Ban_3 = 0;
 		XI_LANH_NANG_NONG;
-	
 	}
-	
-
-
 	}
 
 	
@@ -869,11 +920,11 @@ void Giu_nang_ha()
 		else																				nang_back;
 
 		speed_temp = abs(bientronangbongValue - target_Nang_Ha)*2;
-//		if (speed_temp > 250)
-//				speed_temp = 250;
+//		if (speed_temp > 150)
+//				speed_temp = 150;
 		
-		if (speed_temp > 250)
-				speed_temp = 250;
+	if (speed_temp > 150)
+			speed_temp = 150;
 		
 
 		
@@ -883,7 +934,7 @@ void Giu_nang_ha()
 					
 		nang_ha = speed_temp;
 	}
-	else nang_ha = 10;
+	else nang_ha = 5;
 	if(state_nang == 0)  nang_ha = 0;
 	
 	

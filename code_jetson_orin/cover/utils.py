@@ -6,7 +6,7 @@ import numpy as np
 
 def offset_backboard(frame_2,cx):
     """Tính toán trung tâm khung hình"""
-    frame_center_x = frame_2.shape[1] // 2
+    frame_center_x = frame_2.shape[1] // 2 - 20
     cv2.line(frame_2, (frame_center_x, 0), (frame_center_x, frame_2.shape[0]), (0, 255, 0), 1)
     offset = cx - frame_center_x
     return offset

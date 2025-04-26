@@ -44,8 +44,6 @@ def init_serial_connections():
         print(f"⚠️ Không thể kết nối với ESP32: {e}")
         is_esp32_connected = False
 
-# Khởi tạo kết nối serial
-init_serial_connections()
 
 # Queue và cache
 distance_queue = queue.Queue(maxsize=MAX_QUEUE_SIZE)
@@ -248,10 +246,6 @@ def main():
                 status_text.append("ESP32: Disconnected")
             if not is_stm32_connected:
                 status_text.append("STM32: Disconnected")
-            if distance is None:
-                status_text.append("Distance: Default (1)")
-            else:
-                status_text.append(f"Distance: {distance}")
             
             cv2.putText(frame, f'FPS: {fps:.2f}', (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             
