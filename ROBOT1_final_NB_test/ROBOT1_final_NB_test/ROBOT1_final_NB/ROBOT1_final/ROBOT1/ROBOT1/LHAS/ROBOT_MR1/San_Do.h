@@ -1,0 +1,59 @@
+//**********************************SAN DO Xoáy*************************************
+#define MOCCU 399  // MOC NHA: 398  // MOC NB: 
+#define LUC_TAI_MOC 114.5   //108 ,, NB: 
+#define LUC_TAI_MOC_XOAY 118    // 117.5   NB: 
+
+#define LUC_MAX 250
+#define LUC_MIN 20
+
+#define SMOOTHING_FACTOR 0.1
+
+//float filtered_lazeValue = 0;
+
+// H? s? h?i quy mu (suy ra d? l?c t?i MOCCU là dúng)
+#define A 48    // NB 49
+#define A_XOAY 50   //NB 49
+#define B (log((float) (LUC_TAI_MOC + cong_tru_luc) / A) / MOCCU)
+#define B_XOAY (log((float) (LUC_TAI_MOC_XOAY + cong_tru_luc)/ A_XOAY) / MOCCU)
+	
+void lucbanlazerDo(float lazeTruocValue_Ban) {
+    float gocBan = 0;
+    float lucBan = 0;
+    float corrected_distance;
+
+    // Làm m?n tín hi?u do kho?ng cách
+
+			filtered_lazeValue = (SMOOTHING_FACTOR * lazeTruocValue_Ban  + ((1 - SMOOTHING_FACTOR) * filtered_lazeValue));
+
+    // Tính kho?ng cách chu?n
+    corrected_distance = sqrt((filtered_lazeValue * filtered_lazeValue));
+
+    // Áp d?ng công th?c h?i quy s? mu
+			 if (lazeTruocValue_Ban < 590) {
+    lucBan = A_XOAY * exp(B_XOAY * corrected_distance);}
+		else if (lazeTruocValue_Ban >= 590){lucBan = A * exp(B * corrected_distance);}
+
+		
+		
+			if (lazeTruocValue_Ban >= 607 && lazeTruocValue_Ban < 613  ) {lucBan -= 2.2;}
+		else if (lazeTruocValue_Ban >= 613 && lazeTruocValue_Ban < 620  ) {lucBan -= 3.2;}
+		else if (lazeTruocValue_Ban >= 620 && lazeTruocValue_Ban < 630  ) {lucBan -= 4.3;}
+		else if (lazeTruocValue_Ban >= 630 && lazeTruocValue_Ban < 640  ) {lucBan -= 5;}
+		else if (lazeTruocValue_Ban >= 640 && lazeTruocValue_Ban < 650  ) {lucBan -= 8.5;}
+		else if (lazeTruocValue_Ban >= 650 && lazeTruocValue_Ban < 665 ) {lucBan -= 10;}
+		else if (lazeTruocValue_Ban >= 665 && lazeTruocValue_Ban < 680 ) {lucBan -= 13;}
+		else if (lazeTruocValue_Ban >= 680 && lazeTruocValue_Ban < 750 ) {lucBan -= 16;}
+
+
+    if (lucBan > LUC_MAX) {
+        lucBan = LUC_MAX;
+    } else if (lucBan < LUC_MIN) {
+        lucBan = LUC_MIN;
+    }
+
+		
+    force_F = lucBan;    
+    final_force = force_F;
+		}
+
+	

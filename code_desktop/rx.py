@@ -1,29 +1,26 @@
 import serial
-from cover.utils import *
+import struct
 import time
 
-ser = serial.Serial('COM4', baudrate=115200)
-
-current_value = 1  # bắt đầu từ 1
+ser = serial.Serial('COM4', baudrate=115200, timeout=1)
 
 try:
     while True:
-        if ser.in_waiting > 0:
-            data = ser.read(1)   # Đọc 1 byte
-            value = int.from_bytes(data, byteorder='big')
-            print(f"Received value from UART6: {value}")
+        if ser.in_waiting >= 7:
+            data = ser.read(7)
             
-            if value == 1:
-                if current_value <= 200:
-                    offset = current_value   # offset tăng dần từ 1 -> 200
-                    distance = 200  # bạn có thể chỉnh distance cố định, hoặc tăng theo offset
-                    create_stm32_message_1(offset, distance, ser)
-                    print(f"Sent back: offset={offset}, distance={distance}")
-                    current_value += 1
-                else:
-                    print("Finished sending up to 200.")
+            # Kiểm tra start byte
+            if data[0] == 0x02:
+                # Giải mã các byte còn lại: 3 số uint16_t big endian
+                CL, CT, BC = struct.unpack('>HHH', data[1:])  # '>' là Big Endian, H = uint16_t
+                print(f"Nhận được: CL = {CL}, CT = {CT}, BC = {BC}")
+            else:
+                print(f"Start byte không hợp lệ: {hex(data[0])}")
+                print(f"Dữ liệu raw: {[hex(b) for b in data]}")
+
+        time.sleep(0.05)  # giảm tải CPU
 
 except KeyboardInterrupt:
-    print("Exiting...")
+    print("\nThoát chương trình.")
 finally:
     ser.close()
